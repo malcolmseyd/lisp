@@ -9,6 +9,8 @@ const (
 	TypePrimitive
 	TypeProcedure
 	TypeMacro
+	// parsing types
+	TypeCloseParen
 	// data types
 	TypeNumber
 )
@@ -40,8 +42,8 @@ func Intern(s string) *Symbol {
 
 // Pair is a cons-cell
 type Pair struct {
-	car Obj
-	cdr Obj
+	Car Obj
+	Cdr Obj
 }
 
 var _ Obj = &Pair{}
@@ -51,13 +53,21 @@ func (p *Pair) Type() ObjType {
 }
 
 func Cons(car, cdr Obj) *Pair {
-	return &Pair{car: car, cdr: cdr}
+	return &Pair{Car: car, Cdr: cdr}
 }
 
 func Car(p *Pair) Obj {
-	return p.car
+	return p.Car
 }
 
 func Cdr(p *Pair) Obj {
-	return p.cdr
+	return p.Cdr
+}
+
+type CloseParen struct{}
+
+var _ Obj = &CloseParen{}
+
+func (CloseParen) Type() ObjType {
+	return TypeCloseParen
 }
