@@ -15,6 +15,10 @@ func (n *Num) String() string {
 	return strconv.FormatInt(int64(n.n), 10)
 }
 
+func (Primitive) String() string {
+	return "#<primitive>"
+}
+
 func (p *Pair) String() string {
 	b := strings.Builder{}
 	b.WriteByte('(')
@@ -42,6 +46,7 @@ func (p *Pair) String() string {
 
 var _ fmt.Stringer = &Symbol{}
 var _ fmt.Stringer = &Pair{}
+var _ fmt.Stringer = Primitive(nil)
 
 // see above for a list of supported types
 func Print(o Obj) {

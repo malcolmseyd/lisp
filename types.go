@@ -106,26 +106,27 @@ func MakeEnv(parent *Env) *Env {
 	}
 }
 
-func (e *Env) Set(sym *Symbol, o Obj) {
+func (e *Env) Bind(sym *Symbol, o Obj) {
 	e.bindings[*sym] = o
 }
 
-func (e *Env) SetMut(sym *Symbol, o Obj) {
-	if _, ok := e.bindings[*sym]; ok {
+func (e *Env) Set(sym *Symbol, o Obj) Obj {
+	if old, ok := e.bindings[*sym]; ok {
 		e.bindings[*sym] = o
+		return old
 	}
 	if e.parent != nil {
-		e.parent.SetMut(sym, o)
+		e.parent.Set(sym, o)
 	}
 	panic(fmt.Sprintf("tried to set unbound variable %v", sym))
 }
 
-func (e *Env) Get(sym *Symbol) Obj {
+func (e *Env) Resolve(sym *Symbol) Obj {
 	if o, ok := e.bindings[*sym]; ok {
 		return o
 	}
 	if e.parent != nil {
-		return e.Get(sym)
+		return e.Resolve(sym)
 	}
 	panic(fmt.Sprintf("tried to get unbound variable %v", sym))
 }
