@@ -76,7 +76,7 @@ func (CloseParen) Type() ObjType {
 	return TypeCloseParen
 }
 
-type Primitive func(Obj) Obj
+type Primitive func(Obj, *Env) Obj
 
 func (Primitive) Type() ObjType {
 	return TypePrimitive
@@ -110,12 +110,22 @@ func (e *Env) Set(sym *Symbol, o Obj) {
 	e.bindings[*sym] = o
 }
 
-func (e *Env) Get(sym *Symbol) (Obj, bool) {
+func (e *Env) SetMut(sym *Symbol, o Obj) {
+	if _, ok := e.bindings[*sym]; ok {
+		e.bindings[*sym] = o
+	}
+	if e.parent != nil {
+		e.parent.SetMut(sym, o)
+	}
+	panic(fmt.Sprintf("tried to set unbound variable %v", sym))
+}
+
+func (e *Env) Get(sym *Symbol) Obj {
 	if o, ok := e.bindings[*sym]; ok {
-		return o, true
+		return o
 	}
 	if e.parent != nil {
 		return e.Get(sym)
 	}
-	panic(fmt.Sprintf("referenced unbound variable %v", sym))
+	panic(fmt.Sprintf("tried to get unbound variable %v", sym))
 }
