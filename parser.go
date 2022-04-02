@@ -73,13 +73,8 @@ func parseDigit(r rune) int64 {
 
 func ReadNum(s io.RuneScanner) *Num {
 	r := peekRune(s)
-	neg := false
 	result := int64(0)
-	if r == '-' {
-		neg = true
-		readRune(s)
-		r = peekRune(s)
-	} else if isNumRune(r) {
+	if isNumRune(r) {
 		result = result*10 + parseDigit(r)
 		readRune(s)
 		r = peekRune(s)
@@ -90,9 +85,6 @@ func ReadNum(s io.RuneScanner) *Num {
 		result = result*10 + parseDigit(r)
 		readRune(s)
 		r = peekRune(s)
-	}
-	if neg {
-		result *= -1
 	}
 	return MakeNum(result)
 }

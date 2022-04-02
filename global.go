@@ -2,19 +2,29 @@ package main
 
 var symbols = map[string]*string{}
 
-// TODO: top level environment frame
-
 var (
 	Nil = Intern("nil")
 )
 
 func BindGlobals(e *Env) {
-	bindPrim("cons", ConsPrim, e)
-	bindPrim("quote", QuotePrim, e)
-	bindPrim("eval", EvalPrim, e)
-	e.Bind(Intern("nil"), Nil)
-}
+	prims := map[string]func(Obj, *Env) Obj{
+		"cons":   ConsPrim,
+		"car":    CarPrim,
+		"cdr":    CdrPrim,
+		"define": DefinePrim,
+		"set!":   SetPrim,
+		"quote":  QuotePrim,
+		"eval":   EvalPrim,
+		"+":      AddPrim,
+		"-":      SubPrim,
+		"*":      MulPrim,
+		"/":      DivPrim,
+		"exit":   ExitPrim,
+	}
 
-func bindPrim(name string, f func(Obj, *Env) Obj, e *Env) {
-	e.Bind(Intern(name), Primitive(f))
+	for name, f := range prims {
+		e.Bind(Intern(name), Primitive(f))
+	}
+
+	e.Bind(Intern("nil"), Nil)
 }
