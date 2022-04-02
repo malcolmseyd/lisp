@@ -1,5 +1,9 @@
 package main
 
+import (
+	"fmt"
+)
+
 type ObjType uint8
 
 const (
@@ -20,12 +24,16 @@ type Obj interface {
 	Type() ObjType
 }
 
+var _ Obj = Primitive(nil)
+var _ Obj = &Symbol{}
+var _ Obj = &CloseParen{}
+var _ Obj = &Pair{}
+var _ Obj = &Num{}
+
 // Symbol is an interned string
 type Symbol struct {
 	interned *string
 }
-
-var _ Obj = &Symbol{}
 
 func (s *Symbol) Type() ObjType {
 	return TypeSymbol
@@ -46,8 +54,6 @@ type Pair struct {
 	Cdr Obj
 }
 
-var _ Obj = &Pair{}
-
 func (p *Pair) Type() ObjType {
 	return TypePair
 }
@@ -66,8 +72,50 @@ func Cdr(p *Pair) Obj {
 
 type CloseParen struct{}
 
-var _ Obj = &CloseParen{}
-
 func (CloseParen) Type() ObjType {
 	return TypeCloseParen
+}
+
+type Primitive func(Obj) Obj
+
+func (Primitive) Type() ObjType {
+	return TypePrimitive
+}
+
+type Num struct {
+	n int64
+}
+
+func (Num) Type() ObjType {
+	return TypeNumber
+}
+
+func MakeNum(n int64) *Num {
+	return &Num{n: n}
+}
+
+type Env struct {
+	bindings map[Symbol]Obj
+	parent   *Env
+}
+
+func MakeEnv(parent *Env) *Env {
+	return &Env{
+		bindings: map[Symbol]Obj{},
+		parent:   parent,
+	}
+}
+
+func (e *Env) Set(sym *Symbol, o Obj) {
+	e.bindings[*sym] = o
+}
+
+func (e *Env) Get(sym *Symbol) (Obj, bool) {
+	if o, ok := e.bindings[*sym]; ok {
+		return o, true
+	}
+	if e.parent != nil {
+		return e.Get(sym)
+	}
+	panic(fmt.Sprintf("referenced unbound variable %v", sym))
 }

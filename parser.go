@@ -29,6 +29,9 @@ func Read(s io.RuneScanner) Obj {
 	if o := ReadCloseParen(s); o != nil {
 		return o
 	}
+	if o := ReadNum(s); o != nil {
+		return o
+	}
 	// this should be at the bottom since it's so permissive
 	if o := ReadSym(s); o != nil {
 		return o
@@ -58,6 +61,40 @@ func ReadSym(s io.RuneScanner) *Symbol {
 		return nil
 	}
 	return Intern(b.String())
+}
+
+func isNumRune(r rune) bool {
+	return r >= '0' && r <= '9'
+}
+
+func parseDigit(r rune) int64 {
+	return int64(r - '0')
+}
+
+func ReadNum(s io.RuneScanner) *Num {
+	r := peekRune(s)
+	neg := false
+	result := int64(0)
+	if r == '-' {
+		neg = true
+		readRune(s)
+		r = peekRune(s)
+	} else if isNumRune(r) {
+		result = result*10 + parseDigit(r)
+		readRune(s)
+		r = peekRune(s)
+	} else {
+		return nil
+	}
+	for isNumRune(r) {
+		result = result*10 + parseDigit(r)
+		readRune(s)
+		r = peekRune(s)
+	}
+	if neg {
+		result *= -1
+	}
+	return MakeNum(result)
 }
 
 func ReadList(s io.RuneScanner) Obj {
