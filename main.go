@@ -2,6 +2,8 @@ package main
 
 import (
 	"bufio"
+	"bytes"
+	_ "embed"
 	"fmt"
 	"io"
 	"os"
@@ -13,6 +15,8 @@ func main() {
 	e := MakeEnv(nil)
 	BindGlobals(e)
 
+	loadPrelude(e)
+
 	r := bufio.NewReader(os.Stdin)
 
 	for {
@@ -20,9 +24,29 @@ func main() {
 	}
 }
 
+//go:embed prelude.lisp
+var prelude string
+
+func loadPrelude(e *Env) {
+	defer func() {
+		if r := recover(); r != nil && r != "EOF" {
+			fmt.Println("panic caught loading stdlib:", r)
+		}
+	}()
+	s := bufio.NewReader(bytes.NewBufferString(prelude))
+
+	// go until we panic (EOF panics)
+	for {
+		Eval(Read(s), e)
+	}
+}
+
 func repl(r io.RuneScanner, e *Env) {
 	defer func() {
 		if r := recover(); r != nil {
+			if r == "EOF" {
+				os.Exit(0)
+			}
 			fmt.Println("panic caught:", r)
 		}
 	}()

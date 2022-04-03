@@ -11,12 +11,18 @@ The parser will use an LL recursive descent parsing strategy
 */
 
 func readRune(s io.RuneScanner) rune {
-	r, _, _ := s.ReadRune()
+	r, _, e := s.ReadRune()
+	if e != nil {
+		panic(e.Error())
+	}
 	return r
 }
 
 func peekRune(s io.RuneScanner) rune {
-	r, _, _ := s.ReadRune()
+	r, _, e := s.ReadRune()
+	if e != nil {
+		panic(e.Error())
+	}
 	s.UnreadRune()
 	return r
 }
