@@ -295,9 +295,8 @@ func DivPrim(o Obj, e *Env) Obj {
 }
 
 func ModuloPrim(o Obj, e *Env) Obj {
-	acc := int64(0)
 	args := listToSlice(Evlis(o, e))
-	if len(args) != 0 {
+	if len(args) != 2 {
 		panic("modulo takes 2 args")
 	}
 
@@ -305,7 +304,7 @@ func ModuloPrim(o Obj, e *Env) Obj {
 	if !ok {
 		panic("modulo only takes number arguments")
 	}
-	v2, ok := args[0].(*Num)
+	v2, ok := args[1].(*Num)
 	if !ok {
 		panic("modulo only takes number arguments")
 	}
