@@ -5,6 +5,7 @@ var symbols = map[string]*string{}
 var (
 	Nil  = Intern("nil")
 	True = Intern("#t")
+	Dot  = Intern(".")
 )
 
 func BindGlobals(e *Env) {

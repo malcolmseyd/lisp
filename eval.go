@@ -35,18 +35,19 @@ func Apply(proc Obj, args Obj, e *Env) Obj {
 		bodyScope := MakeEnv(proc.scope)
 		argsSyms := proc.args
 
-		var argsList *Pair = nil
-		var ok bool
 		for i, argSym := range argsSyms {
 			if Nil.Equal(args) {
 				panic(fmt.Sprintf("this procedure takes %v arguments, but was only given %v", len(argsSyms), i))
 			}
-			argsList, ok = args.(*Pair)
+			argsList, ok := args.(*Pair)
 			if !ok {
 				panic("bug: args should be a list")
 			}
 			bodyScope.Bind(&argSym, Car(argsList))
 			args = Cdr(argsList)
+		}
+		if proc.variadic != nil {
+			bodyScope.Bind(proc.variadic, args)
 		}
 
 		return Eval(proc.body, bodyScope)

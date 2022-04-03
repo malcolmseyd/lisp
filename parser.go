@@ -110,11 +110,25 @@ func ReadList(s io.RuneScanner) Obj {
 
 	start := Obj(Nil)
 	prev := start
+Outer:
 	for {
 		switch curr := Read(s).(type) {
 		case *CloseParen:
-			return start
+			break Outer
 		default:
+			if dot, ok := curr.(*Symbol); ok && *dot == *Dot {
+				curr = Read(s)
+				if Nil.Equal(start) {
+					start = curr
+				}
+				if prevPair, ok := prev.(*Pair); ok && !Nil.Equal(prev) {
+					prevPair.Cdr = curr
+				}
+				if Read(s).Type() != TypeCloseParen {
+					panic("missing close paren after .")
+				}
+				break Outer
+			}
 			curr = Cons(curr, Nil)
 			if Nil.Equal(start) {
 				start = curr
@@ -125,6 +139,7 @@ func ReadList(s io.RuneScanner) Obj {
 			prev = curr
 		}
 	}
+	return start
 }
 
 func ReadCloseParen(s io.RuneScanner) *CloseParen {

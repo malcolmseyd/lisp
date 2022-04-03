@@ -12,11 +12,17 @@ func LambdaPrim(o Obj, e *Env) Obj {
 	}
 	args := Car(pair)
 
+	var variadicSym *Symbol = nil
 	argsSyms := []Symbol{}
 	for !Nil.Equal(args) {
 		argList, ok := args.(*Pair)
 		if !ok {
-			panic("lambda args must be an argument list")
+			sym, ok := args.(*Symbol)
+			if !ok {
+				panic("arguments must be symbols")
+			}
+			variadicSym = sym
+			break
 		}
 		sym, ok := Car(argList).(*Symbol)
 		if !ok {
@@ -33,6 +39,9 @@ func LambdaPrim(o Obj, e *Env) Obj {
 	}
 	body := Car(pair)
 
+	if variadicSym != nil {
+		return MakeVariadicProcedure(argsSyms, *variadicSym, body, e)
+	}
 	return MakeProcedure(argsSyms, body, e)
 }
 

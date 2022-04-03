@@ -20,7 +20,7 @@ func (Primitive) String() string {
 }
 
 func (p Procedure) String() string {
-	return fmt.Sprintf("#<procedure: body=%v>", p.body)
+	return fmt.Sprintf("#<procedure: args=%v body=%v variadic=%v>", p.args, p.body, p.variadic)
 }
 
 func (p *Pair) String() string {

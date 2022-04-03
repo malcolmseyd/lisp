@@ -91,9 +91,10 @@ func (Primitive) Type() ObjType {
 }
 
 type Procedure struct {
-	args  []Symbol
-	body  Obj
-	scope *Env
+	args     []Symbol
+	body     Obj
+	scope    *Env
+	variadic *Symbol // nil if not variadic
 }
 
 func (Procedure) Type() ObjType {
@@ -102,6 +103,10 @@ func (Procedure) Type() ObjType {
 
 func MakeProcedure(args []Symbol, body Obj, scope *Env) *Procedure {
 	return &Procedure{args: args, body: body, scope: scope}
+}
+
+func MakeVariadicProcedure(args []Symbol, variadic Symbol, body Obj, scope *Env) *Procedure {
+	return &Procedure{args: args, body: body, scope: scope, variadic: &variadic}
 }
 
 type Num struct {
