@@ -36,6 +36,60 @@ func LambdaPrim(o Obj, e *Env) Obj {
 	return MakeProcedure(argsSyms, body, e)
 }
 
+func EqPrim(o Obj, e *Env) Obj {
+	args := Evlis(o, e)
+
+	pair, ok := args.(*Pair)
+	if !ok {
+		panic("eq takes 2 arguments")
+	}
+	v1 := Car(pair)
+
+	pair, ok = Cdr(pair).(*Pair)
+	if !ok {
+		panic("eq takes 2 arguments")
+	}
+	v2 := Car(pair)
+
+	if v1.Type() != v2.Type() {
+		return Nil
+	}
+
+	switch v1 := v1.(type) {
+	case *Symbol:
+		return boolToLisp(*v1 == *v2.(*Symbol))
+	case *Num:
+		return boolToLisp(*v1 == *v2.(*Num))
+	default:
+		// reference equality for misc
+		return boolToLisp(v1 == v2)
+	}
+}
+
+func LessPrim(o Obj, e *Env) Obj {
+	args := Evlis(o, e)
+
+	pair, ok := args.(*Pair)
+	if !ok {
+		panic("eq takes 2 arguments")
+	}
+	v1, ok := Car(pair).(*Num)
+	if !ok {
+		panic("args should be numbers")
+	}
+
+	pair, ok = Cdr(pair).(*Pair)
+	if !ok {
+		panic("eq takes 2 arguments")
+	}
+	v2, ok := Car(pair).(*Num)
+	if !ok {
+		panic("args should be numbers")
+	}
+
+	return boolToLisp(v1.n < v2.n)
+}
+
 func ConsPrim(o Obj, e *Env) Obj {
 	args := Evlis(o, e)
 	if args == Nil {

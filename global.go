@@ -3,7 +3,8 @@ package main
 var symbols = map[string]*string{}
 
 var (
-	Nil = Intern("nil")
+	Nil  = Intern("nil")
+	True = Intern("#t")
 )
 
 func BindGlobals(e *Env) {
@@ -15,6 +16,9 @@ func BindGlobals(e *Env) {
 		"define": DefinePrim,
 		"set!":   SetPrim,
 		"if":     IfPrim,
+		"eq?":    EqPrim,
+		"=":      EqPrim,
+		"<":      LessPrim,
 		"quote":  QuotePrim,
 		"eval":   EvalPrim,
 		"+":      AddPrim,
@@ -29,4 +33,5 @@ func BindGlobals(e *Env) {
 	}
 
 	e.Bind(Intern("nil"), Nil)
+	e.Bind(Intern("#t"), True)
 }
