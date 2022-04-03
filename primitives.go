@@ -104,6 +104,34 @@ func SetPrim(o Obj, e *Env) Obj {
 	return Nil
 }
 
+func IfPrim(o Obj, e *Env) Obj {
+	if o == Nil {
+		panic("if takes 3 arguments")
+	}
+	pair, ok := o.(*Pair)
+	if !ok {
+		panic("if bug 1")
+	}
+	test := Eval(Car(pair), e)
+
+	pair, ok = Cdr(pair).(*Pair)
+	if !ok {
+		panic("if takes 3 arguments")
+	}
+	expr1 := Car(pair)
+
+	pair, ok = Cdr(pair).(*Pair)
+	if !ok {
+		panic("if takes 3 arguments")
+	}
+	expr2 := Car(pair)
+
+	if test != Nil {
+		return Eval(expr1, e)
+	}
+	return Eval(expr2, e)
+}
+
 func QuotePrim(o Obj, _ *Env) Obj {
 	pair, ok := o.(*Pair)
 	if !ok {

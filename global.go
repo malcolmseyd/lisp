@@ -13,6 +13,7 @@ func BindGlobals(e *Env) {
 		"cdr":    CdrPrim,
 		"define": DefinePrim,
 		"set!":   SetPrim,
+		"if":     IfPrim,
 		"quote":  QuotePrim,
 		"eval":   EvalPrim,
 		"+":      AddPrim,
