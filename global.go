@@ -8,6 +8,7 @@ var (
 
 func BindGlobals(e *Env) {
 	prims := map[string]func(Obj, *Env) Obj{
+		"lambda": LambdaPrim,
 		"cons":   ConsPrim,
 		"car":    CarPrim,
 		"cdr":    CdrPrim,

@@ -25,6 +25,7 @@ type Obj interface {
 }
 
 var _ Obj = Primitive(nil)
+var _ Obj = &Procedure{}
 var _ Obj = &Symbol{}
 var _ Obj = &CloseParen{}
 var _ Obj = &Pair{}
@@ -82,6 +83,20 @@ func (Primitive) Type() ObjType {
 	return TypePrimitive
 }
 
+type Procedure struct {
+	args  []Symbol
+	body  Obj
+	scope *Env
+}
+
+func (Procedure) Type() ObjType {
+	return TypeProcedure
+}
+
+func MakeProcedure(args []Symbol, body Obj, scope *Env) *Procedure {
+	return &Procedure{args: args, body: body, scope: scope}
+}
+
 type Num struct {
 	n int64
 }
@@ -116,7 +131,7 @@ func (e *Env) Set(sym *Symbol, o Obj) Obj {
 		return old
 	}
 	if e.parent != nil {
-		e.parent.Set(sym, o)
+		return e.parent.Set(sym, o)
 	}
 	panic(fmt.Sprintf("tried to set unbound variable %v", sym))
 }
@@ -126,7 +141,7 @@ func (e *Env) Resolve(sym *Symbol) Obj {
 		return o
 	}
 	if e.parent != nil {
-		return e.Resolve(sym)
+		return e.parent.Resolve(sym)
 	}
 	panic(fmt.Sprintf("tried to get unbound variable %v", sym))
 }

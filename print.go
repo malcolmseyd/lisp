@@ -19,6 +19,10 @@ func (Primitive) String() string {
 	return "#<primitive>"
 }
 
+func (p Procedure) String() string {
+	return fmt.Sprintf("#<procedure: body=%v>", p.body)
+}
+
 func (p *Pair) String() string {
 	b := strings.Builder{}
 	b.WriteByte('(')
@@ -47,6 +51,7 @@ func (p *Pair) String() string {
 var _ fmt.Stringer = &Symbol{}
 var _ fmt.Stringer = &Pair{}
 var _ fmt.Stringer = Primitive(nil)
+var _ fmt.Stringer = &Procedure{}
 
 // see above for a list of supported types
 func Print(o Obj) {

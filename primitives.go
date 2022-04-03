@@ -5,6 +5,37 @@ import (
 	"os"
 )
 
+func LambdaPrim(o Obj, e *Env) Obj {
+	pair, ok := o.(*Pair)
+	if !ok {
+		panic("lambda takes 2 arguments")
+	}
+	args := Car(pair)
+
+	argsSyms := []Symbol{}
+	for args != Nil {
+		argList, ok := Car(pair).(*Pair)
+		if !ok {
+			panic("lambda args must be an argument list")
+		}
+		sym, ok := Car(argList).(*Symbol)
+		if !ok {
+			panic("arguments must be symbols")
+		}
+		argsSyms = append(argsSyms, *sym)
+
+		args = Cdr(argList)
+	}
+
+	pair, ok = Cdr(pair).(*Pair)
+	if !ok {
+		panic("lambda takes 2 arguments")
+	}
+	body := Car(pair)
+
+	return MakeProcedure(argsSyms, body, e)
+}
+
 func ConsPrim(o Obj, e *Env) Obj {
 	args := Evlis(o, e)
 	if args == Nil {
