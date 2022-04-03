@@ -40,7 +40,7 @@ func (p *Pair) String() string {
 		b.WriteString(mustStringer(Car(pair)).String())
 		curr = Cdr(pair)
 	}
-	if curr != Nil {
+	if !Nil.Equal(curr) {
 		b.WriteString(" . ")
 		b.WriteString(mustStringer(curr).String())
 	}

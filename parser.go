@@ -116,10 +116,10 @@ func ReadList(s io.RuneScanner) Obj {
 			return start
 		default:
 			curr = Cons(curr, Nil)
-			if start == Nil {
+			if Nil.Equal(start) {
 				start = curr
 			}
-			if prevPair, ok := prev.(*Pair); ok && prev != Nil {
+			if prevPair, ok := prev.(*Pair); ok && !Nil.Equal(prev) {
 				prevPair.Cdr = curr
 			}
 			prev = curr

@@ -49,6 +49,13 @@ func Intern(s string) *Symbol {
 	return &Symbol{interned: interned}
 }
 
+func (s *Symbol) Equal(o Obj) bool {
+	if sym, ok := o.(*Symbol); ok {
+		return *sym == *s
+	}
+	return false
+}
+
 // Pair is a cons-cell
 type Pair struct {
 	Car Obj

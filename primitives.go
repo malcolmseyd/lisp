@@ -13,7 +13,7 @@ func LambdaPrim(o Obj, e *Env) Obj {
 	args := Car(pair)
 
 	argsSyms := []Symbol{}
-	for args != Nil {
+	for !Nil.Equal(args) {
 		argList, ok := Car(pair).(*Pair)
 		if !ok {
 			panic("lambda args must be an argument list")
@@ -92,7 +92,7 @@ func LessPrim(o Obj, e *Env) Obj {
 
 func ConsPrim(o Obj, e *Env) Obj {
 	args := Evlis(o, e)
-	if args == Nil {
+	if Nil.Equal(args) {
 		panic("cons takes 2 arguments")
 	}
 	pair, ok := args.(*Pair)
@@ -104,7 +104,7 @@ func ConsPrim(o Obj, e *Env) Obj {
 	if !ok {
 		panic("cons takes 2 arguments")
 	}
-	if Cdr(pair) != Nil {
+	if !Nil.Equal(Cdr(pair)) {
 		panic(fmt.Sprintf("cons takes 2 arguments, ignored 3rd arg: %#v", Car(pair)))
 	}
 	right := Car(pair)
@@ -113,7 +113,7 @@ func ConsPrim(o Obj, e *Env) Obj {
 
 func CarPrim(o Obj, e *Env) Obj {
 	args := Evlis(o, e)
-	if args == Nil {
+	if Nil.Equal(args) {
 		panic("car takes 1 argument")
 	}
 
@@ -130,7 +130,7 @@ func CarPrim(o Obj, e *Env) Obj {
 
 func CdrPrim(o Obj, e *Env) Obj {
 	args := Evlis(o, e)
-	if args == Nil {
+	if Nil.Equal(args) {
 		panic("car takes 1 argument")
 	}
 
@@ -146,7 +146,7 @@ func CdrPrim(o Obj, e *Env) Obj {
 }
 
 func DefinePrim(o Obj, e *Env) Obj {
-	if o == Nil {
+	if Nil.Equal(o) {
 		panic("define takes 2 arguments")
 	}
 
@@ -168,7 +168,7 @@ func DefinePrim(o Obj, e *Env) Obj {
 }
 
 func SetPrim(o Obj, e *Env) Obj {
-	if o == Nil {
+	if Nil.Equal(o) {
 		panic("set takes 2 arguments")
 	}
 
@@ -190,7 +190,7 @@ func SetPrim(o Obj, e *Env) Obj {
 }
 
 func IfPrim(o Obj, e *Env) Obj {
-	if o == Nil {
+	if Nil.Equal(o) {
 		panic("if takes 3 arguments")
 	}
 	pair, ok := o.(*Pair)
@@ -211,7 +211,7 @@ func IfPrim(o Obj, e *Env) Obj {
 	}
 	expr2 := Car(pair)
 
-	if test != Nil {
+	if !Nil.Equal(test) {
 		return Eval(expr1, e)
 	}
 	return Eval(expr2, e)
@@ -239,7 +239,7 @@ func AddPrim(o Obj, e *Env) Obj {
 	args := Evlis(o, e)
 	pair, ok := args.(*Pair)
 	if !ok {
-		if args == Nil {
+		if Nil.Equal(args) {
 			return MakeNum(acc)
 		}
 		panic("bug in addprim")
@@ -250,7 +250,7 @@ func AddPrim(o Obj, e *Env) Obj {
 			panic("+ only takes number arguments")
 		}
 		acc += n.n
-		if Cdr(pair) == Nil {
+		if Nil.Equal(Cdr(pair)) {
 			break
 		}
 		pair, ok = Cdr(pair).(*Pair)
@@ -267,7 +267,7 @@ func SubPrim(o Obj, e *Env) Obj {
 	args := Evlis(o, e)
 	pair, ok := args.(*Pair)
 	if !ok {
-		if args == Nil {
+		if Nil.Equal(args) {
 			return MakeNum(acc)
 		}
 		panic("bug in subprim")
@@ -282,7 +282,7 @@ func SubPrim(o Obj, e *Env) Obj {
 		} else {
 			acc -= n.n
 		}
-		if Cdr(pair) == Nil {
+		if Nil.Equal(Cdr(pair)) {
 			break
 		}
 		pair, ok = Cdr(pair).(*Pair)
@@ -303,7 +303,7 @@ func MulPrim(o Obj, e *Env) Obj {
 	args := Evlis(o, e)
 	pair, ok := args.(*Pair)
 	if !ok {
-		if args == Nil {
+		if Nil.Equal(args) {
 			return MakeNum(acc)
 		}
 		panic("bug in multprim")
@@ -314,7 +314,7 @@ func MulPrim(o Obj, e *Env) Obj {
 			panic("/ only takes number arguments")
 		}
 		acc *= n.n
-		if Cdr(pair) == Nil {
+		if Nil.Equal(Cdr(pair)) {
 			break
 		}
 		pair, ok = Cdr(pair).(*Pair)
@@ -331,7 +331,7 @@ func DivPrim(o Obj, e *Env) Obj {
 	args := Evlis(o, e)
 	pair, ok := args.(*Pair)
 	if !ok {
-		if args == Nil {
+		if Nil.Equal(args) {
 			return MakeNum(acc)
 		}
 		panic("bug in multprim")
@@ -346,7 +346,7 @@ func DivPrim(o Obj, e *Env) Obj {
 		} else {
 			acc /= n.n
 		}
-		if Cdr(pair) == Nil {
+		if Nil.Equal(Cdr(pair)) {
 			break
 		}
 		pair, ok = Cdr(pair).(*Pair)
@@ -362,7 +362,7 @@ func ExitPrim(o Obj, e *Env) Obj {
 	args := Evlis(o, e)
 	pair, ok := args.(*Pair)
 	if !ok {
-		if args == Nil {
+		if Nil.Equal(args) {
 			os.Exit(0)
 		}
 		panic("eval takes 1 argument")

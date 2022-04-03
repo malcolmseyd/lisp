@@ -16,7 +16,7 @@ func Eval(o Obj, e *Env) Obj {
 }
 
 func Evlis(o Obj, e *Env) Obj {
-	if o == Nil {
+	if Nil.Equal(o) {
 		return Nil
 	}
 	if pair, ok := o.(*Pair); ok {
@@ -38,7 +38,7 @@ func Apply(proc Obj, args Obj, e *Env) Obj {
 		var argsList *Pair = nil
 		var ok bool
 		for i, argSym := range argsSyms {
-			if args == Nil {
+			if Nil.Equal(args) {
 				panic(fmt.Sprintf("this procedure takes %v arguments, but was only given %v", len(argsSyms), i))
 			}
 			argsList, ok = args.(*Pair)
