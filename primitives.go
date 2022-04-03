@@ -234,6 +234,21 @@ func EvalPrim(o Obj, e *Env) Obj {
 	return Eval(Car(pair), e)
 }
 
+func ApplyPrim(o Obj, e *Env) Obj {
+	args := Evlis(o, e)
+	pair, ok := args.(*Pair)
+	if !ok {
+		panic("apply takes 2 arguments")
+	}
+	proc := Car(pair)
+	pair, ok = Cdr(pair).(*Pair)
+	if !ok {
+		panic("apply takes 2 arguments")
+	}
+	return Apply(proc, Car(pair), e)
+
+}
+
 func AddPrim(o Obj, e *Env) Obj {
 	acc := int64(0)
 	args := Evlis(o, e)

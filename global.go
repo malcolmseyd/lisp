@@ -21,6 +21,7 @@ func BindGlobals(e *Env) {
 		"<":      LessPrim,
 		"quote":  QuotePrim,
 		"eval":   EvalPrim,
+		"apply":  ApplyPrim,
 		"+":      AddPrim,
 		"-":      SubPrim,
 		"*":      MulPrim,
