@@ -14,7 +14,7 @@ func LambdaPrim(o Obj, e *Env) Obj {
 
 	argsSyms := []Symbol{}
 	for !Nil.Equal(args) {
-		argList, ok := Car(pair).(*Pair)
+		argList, ok := args.(*Pair)
 		if !ok {
 			panic("lambda args must be an argument list")
 		}
