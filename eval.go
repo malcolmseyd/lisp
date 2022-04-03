@@ -30,28 +30,32 @@ func Apply(proc Obj, args Obj, e *Env) Obj {
 	case Primitive:
 		return proc(args, e)
 	case *Procedure:
-		args := Evlis(args, e)
-
-		bodyScope := MakeEnv(proc.scope)
-		argsSyms := proc.args
-
-		for i, argSym := range argsSyms {
-			if Nil.Equal(args) {
-				panic(fmt.Sprintf("this procedure takes %v arguments, but was only given %v", len(argsSyms), i))
-			}
-			argsList, ok := args.(*Pair)
-			if !ok {
-				panic("bug: args should be a list")
-			}
-			bodyScope.Bind(&argSym, Car(argsList))
-			args = Cdr(argsList)
-		}
-		if proc.variadic != nil {
-			bodyScope.Bind(proc.variadic, args)
-		}
-
-		return Eval(proc.body, bodyScope)
+		return ApplyProcedure(proc, Evlis(args, e), e)
 	default:
 		panic(fmt.Sprintf("unknown procedure type %T", proc))
 	}
+}
+
+func ApplyProcedure(proc *Procedure, argsList Obj, e *Env) Obj {
+	args := listToSlice(argsList)
+	argsSyms := proc.args
+	if len(args) < len(argsSyms) {
+		panic(fmt.Sprintf("this procedure takes %v arguments, but was given %v", len(argsSyms), len(args)))
+	}
+
+	bodyScope := MakeEnv(proc.scope)
+	for i, argSym := range argsSyms {
+		bodyScope.Bind(&argSym, args[i])
+	}
+
+	if proc.variadic != nil {
+		rest := args[len(argsSyms):]
+		bodyScope.Bind(proc.variadic, sliceToList(rest))
+	} else {
+		if len(args) != len(argsSyms) {
+			panic(fmt.Sprintf("this procedure takes %v arguments, but was given %v", len(argsSyms), len(args)))
+		}
+	}
+
+	return Eval(proc.body, bodyScope)
 }

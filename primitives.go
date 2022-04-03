@@ -1,43 +1,31 @@
 package main
 
 import (
-	"fmt"
 	"os"
 )
 
 func LambdaPrim(o Obj, e *Env) Obj {
-	pair, ok := o.(*Pair)
-	if !ok {
+	formArgs := listToSlice(o)
+	if len(formArgs) != 2 {
 		panic("lambda takes 2 arguments")
 	}
-	args := Car(pair)
+	args, variadic := improperListToSlice(formArgs[0])
 
-	var variadicSym *Symbol = nil
+	variadicSym, ok := variadic.(*Symbol)
+	if variadic != nil && !ok {
+		panic("arguments must be symbols")
+	}
+
 	argsSyms := []Symbol{}
-	for !Nil.Equal(args) {
-		argList, ok := args.(*Pair)
-		if !ok {
-			sym, ok := args.(*Symbol)
-			if !ok {
-				panic("arguments must be symbols")
-			}
-			variadicSym = sym
-			break
-		}
-		sym, ok := Car(argList).(*Symbol)
+	for _, arg := range args {
+		sym, ok := arg.(*Symbol)
 		if !ok {
 			panic("arguments must be symbols")
 		}
 		argsSyms = append(argsSyms, *sym)
-
-		args = Cdr(argList)
 	}
 
-	pair, ok = Cdr(pair).(*Pair)
-	if !ok {
-		panic("lambda takes 2 arguments")
-	}
-	body := Car(pair)
+	body := formArgs[1]
 
 	if variadicSym != nil {
 		return MakeVariadicProcedure(argsSyms, *variadicSym, body, e)
@@ -46,19 +34,10 @@ func LambdaPrim(o Obj, e *Env) Obj {
 }
 
 func EqPrim(o Obj, e *Env) Obj {
-	args := Evlis(o, e)
+	args := listToSlice(Evlis(o, e))
 
-	pair, ok := args.(*Pair)
-	if !ok {
-		panic("eq takes 2 arguments")
-	}
-	v1 := Car(pair)
-
-	pair, ok = Cdr(pair).(*Pair)
-	if !ok {
-		panic("eq takes 2 arguments")
-	}
-	v2 := Car(pair)
+	v1 := args[0]
+	v2 := args[1]
 
 	if v1.Type() != v2.Type() {
 		return Nil
@@ -66,7 +45,7 @@ func EqPrim(o Obj, e *Env) Obj {
 
 	switch v1 := v1.(type) {
 	case *Symbol:
-		return boolToLisp(*v1 == *v2.(*Symbol))
+		return boolToLisp(v1.Equal(v2))
 	case *Num:
 		return boolToLisp(*v1 == *v2.(*Num))
 	default:
@@ -76,22 +55,14 @@ func EqPrim(o Obj, e *Env) Obj {
 }
 
 func LessPrim(o Obj, e *Env) Obj {
-	args := Evlis(o, e)
+	args := listToSlice(Evlis(o, e))
 
-	pair, ok := args.(*Pair)
-	if !ok {
-		panic("eq takes 2 arguments")
-	}
-	v1, ok := Car(pair).(*Num)
+	v1, ok := args[0].(*Num)
 	if !ok {
 		panic("args should be numbers")
 	}
 
-	pair, ok = Cdr(pair).(*Pair)
-	if !ok {
-		panic("eq takes 2 arguments")
-	}
-	v2, ok := Car(pair).(*Num)
+	v2, ok := args[1].(*Num)
 	if !ok {
 		panic("args should be numbers")
 	}
@@ -100,37 +71,23 @@ func LessPrim(o Obj, e *Env) Obj {
 }
 
 func ConsPrim(o Obj, e *Env) Obj {
-	args := Evlis(o, e)
-	if Nil.Equal(args) {
+	args := listToSlice(Evlis(o, e))
+	if len(args) != 2 {
+
 		panic("cons takes 2 arguments")
 	}
-	pair, ok := args.(*Pair)
-	if !ok {
-		panic("bug: cons pair 1")
-	}
-	left := Car(pair)
-	pair, ok = Cdr(pair).(*Pair)
-	if !ok {
-		panic("cons takes 2 arguments")
-	}
-	if !Nil.Equal(Cdr(pair)) {
-		panic(fmt.Sprintf("cons takes 2 arguments, ignored 3rd arg: %#v", Car(pair)))
-	}
-	right := Car(pair)
+	left := args[0]
+	right := args[1]
 	return Cons(left, right)
 }
 
 func CarPrim(o Obj, e *Env) Obj {
-	args := Evlis(o, e)
-	if Nil.Equal(args) {
+	args := listToSlice(Evlis(o, e))
+	if len(args) != 1 {
 		panic("car takes 1 argument")
 	}
 
-	pair, ok := args.(*Pair)
-	if !ok {
-		panic("bug: car pair")
-	}
-	pair, ok = Car(pair).(*Pair)
+	pair, ok := args[0].(*Pair)
 	if !ok {
 		panic("car takes pairs as arguments")
 	}
@@ -138,88 +95,58 @@ func CarPrim(o Obj, e *Env) Obj {
 }
 
 func CdrPrim(o Obj, e *Env) Obj {
-	args := Evlis(o, e)
-	if Nil.Equal(args) {
-		panic("car takes 1 argument")
+	args := listToSlice(Evlis(o, e))
+	if len(args) != 1 {
+		panic("cdr takes 1 argument")
 	}
 
-	pair, ok := args.(*Pair)
+	pair, ok := args[0].(*Pair)
 	if !ok {
-		panic("bug: car pair")
-	}
-	pair, ok = Car(pair).(*Pair)
-	if !ok {
-		panic("car takes pairs as arguments")
+		panic("cdr takes pairs as arguments")
 	}
 	return Cdr(pair)
 }
 
 func DefinePrim(o Obj, e *Env) Obj {
-	if Nil.Equal(o) {
+	args := listToSlice(o)
+	if len(args) != 2 {
 		panic("define takes 2 arguments")
 	}
 
-	pair, ok := o.(*Pair)
-	if !ok {
-		panic("define bug 1")
-	}
-	name, ok := Car(pair).(*Symbol)
+	name, ok := args[0].(*Symbol)
 	if !ok {
 		panic("the first argument to define is a symbol")
 	}
-	pair, ok = Cdr(pair).(*Pair)
-	if !ok {
-		panic("define takes 2 arguments")
-	}
 
-	e.Bind(name, Eval(Car(pair), e))
+	expr := args[1]
+	e.Bind(name, Eval(expr, e))
 	return Nil
 }
 
 func SetPrim(o Obj, e *Env) Obj {
-	if Nil.Equal(o) {
+	args := listToSlice(o)
+	if len(args) != 2 {
 		panic("set takes 2 arguments")
 	}
 
-	pair, ok := o.(*Pair)
-	if !ok {
-		panic("set bug 1")
-	}
-	name, ok := Car(pair).(*Symbol)
+	name, ok := args[0].(*Symbol)
 	if !ok {
 		panic("the first argument to set is a symbol")
 	}
-	pair, ok = Cdr(pair).(*Pair)
-	if !ok {
-		panic("set takes 2 arguments")
-	}
 
-	e.Set(name, Eval(Car(pair), e))
+	expr := args[1]
+	e.Set(name, Eval(expr, e))
 	return Nil
 }
 
 func IfPrim(o Obj, e *Env) Obj {
-	if Nil.Equal(o) {
+	args := listToSlice(o)
+	if len(args) != 3 {
 		panic("if takes 3 arguments")
 	}
-	pair, ok := o.(*Pair)
-	if !ok {
-		panic("if bug 1")
-	}
-	test := Eval(Car(pair), e)
-
-	pair, ok = Cdr(pair).(*Pair)
-	if !ok {
-		panic("if takes 3 arguments")
-	}
-	expr1 := Car(pair)
-
-	pair, ok = Cdr(pair).(*Pair)
-	if !ok {
-		panic("if takes 3 arguments")
-	}
-	expr2 := Car(pair)
-
+	test := Eval(args[0], e)
+	expr1 := args[1]
+	expr2 := args[2]
 	if !Nil.Equal(test) {
 		return Eval(expr1, e)
 	}
@@ -227,20 +154,19 @@ func IfPrim(o Obj, e *Env) Obj {
 }
 
 func QuotePrim(o Obj, _ *Env) Obj {
-	pair, ok := o.(*Pair)
-	if !ok {
+	args := listToSlice(o)
+	if len(args) != 1 {
 		panic("quote takes 1 argument")
 	}
-	return Car(pair)
+	return args[0]
 }
 
 func EvalPrim(o Obj, e *Env) Obj {
-	args := Evlis(o, e)
-	pair, ok := args.(*Pair)
-	if !ok {
+	args := listToSlice(Evlis(o, e))
+	if len(args) != 1 {
 		panic("eval takes 1 argument")
 	}
-	return Eval(Car(pair), e)
+	return Eval(args[0], e)
 }
 
 func ApplyPrim(o Obj, e *Env) Obj {
@@ -260,63 +186,42 @@ func ApplyPrim(o Obj, e *Env) Obj {
 
 func AddPrim(o Obj, e *Env) Obj {
 	acc := int64(0)
-	args := Evlis(o, e)
-	pair, ok := args.(*Pair)
-	if !ok {
-		if Nil.Equal(args) {
-			return MakeNum(acc)
-		}
-		panic("bug in addprim")
+	args := listToSlice(Evlis(o, e))
+	if len(args) == 0 {
+		return MakeNum(acc)
 	}
-	for {
-		n, ok := Car(pair).(*Num)
+	for _, n := range args {
+		n, ok := n.(*Num)
 		if !ok {
 			panic("+ only takes number arguments")
 		}
+
 		acc += n.n
-		if Nil.Equal(Cdr(pair)) {
-			break
-		}
-		pair, ok = Cdr(pair).(*Pair)
-		if !ok {
-			panic("bad args to + special form")
-		}
 	}
 	return MakeNum(acc)
 }
 
 func SubPrim(o Obj, e *Env) Obj {
 	acc := int64(0)
-	first := true
-	args := Evlis(o, e)
-	pair, ok := args.(*Pair)
-	if !ok {
-		if Nil.Equal(args) {
-			return MakeNum(acc)
-		}
-		panic("bug in subprim")
+	args := listToSlice(Evlis(o, e))
+	if len(args) == 0 {
+		return MakeNum(acc)
 	}
-	for {
-		n, ok := Car(pair).(*Num)
+	for i, n := range args {
+		n, ok := n.(*Num)
 		if !ok {
 			panic("- only takes number arguments")
 		}
-		if first {
+
+		// first element is minuend, following are subtrahend (i googled this lol)
+		if i == 0 {
 			acc = n.n
 		} else {
 			acc -= n.n
 		}
-		if Nil.Equal(Cdr(pair)) {
-			break
-		}
-		pair, ok = Cdr(pair).(*Pair)
-		if !ok {
-			panic("bad args to - special form")
-		}
-		first = false
 	}
-	// unary minus is negation
-	if first {
+	// special case: unary minus is negation
+	if len(args) == 1 {
 		return MakeNum(-acc)
 	}
 	return MakeNum(acc)
@@ -324,75 +229,57 @@ func SubPrim(o Obj, e *Env) Obj {
 
 func MulPrim(o Obj, e *Env) Obj {
 	acc := int64(1)
-	args := Evlis(o, e)
-	pair, ok := args.(*Pair)
-	if !ok {
-		if Nil.Equal(args) {
-			return MakeNum(acc)
-		}
-		panic("bug in multprim")
+	args := listToSlice(Evlis(o, e))
+	if len(args) == 0 {
+		return MakeNum(acc)
 	}
-	for {
-		n, ok := Car(pair).(*Num)
+	for _, n := range args {
+		n, ok := n.(*Num)
 		if !ok {
 			panic("/ only takes number arguments")
 		}
+
 		acc *= n.n
-		if Nil.Equal(Cdr(pair)) {
-			break
-		}
-		pair, ok = Cdr(pair).(*Pair)
-		if !ok {
-			panic("bad args to / special form")
-		}
 	}
 	return MakeNum(acc)
 }
 
 func DivPrim(o Obj, e *Env) Obj {
 	acc := int64(1)
-	first := true
-	args := Evlis(o, e)
-	pair, ok := args.(*Pair)
-	if !ok {
-		if Nil.Equal(args) {
-			return MakeNum(acc)
-		}
-		panic("bug in multprim")
+	args := listToSlice(Evlis(o, e))
+	if len(args) == 0 {
+		return MakeNum(acc)
 	}
-	for {
-		n, ok := Car(pair).(*Num)
+	for i, n := range args {
+		n, ok := n.(*Num)
 		if !ok {
 			panic("/ only takes number arguments")
 		}
-		if first {
+
+		// first element is divident, following are divisors
+		if i == 0 {
 			acc = n.n
 		} else {
 			acc /= n.n
 		}
-		if Nil.Equal(Cdr(pair)) {
-			break
-		}
-		pair, ok = Cdr(pair).(*Pair)
-		if !ok {
-			panic("bad args to / special form")
-		}
-		first = false
 	}
 	return MakeNum(acc)
 }
 
+// TODO modulo operator
+
 func ExitPrim(o Obj, e *Env) Obj {
-	args := Evlis(o, e)
-	pair, ok := args.(*Pair)
+	args := listToSlice(Evlis(o, e))
+	if len(args) > 1 {
+		panic("exit takes 1 or 0 argument")
+	}
+	if len(args) == 0 {
+		os.Exit(0)
+	}
+	n, ok := args[0].(*Num)
 	if !ok {
-		if Nil.Equal(args) {
-			os.Exit(0)
-		}
-		panic("eval takes 1 argument")
+		panic("exit take a number for an argument")
 	}
-	if n, ok := Car(pair).(*Num); ok {
-		os.Exit(int(n.n))
-	}
-	panic("exit takes an number")
+	os.Exit(int(n.n))
+	return Nil
 }
