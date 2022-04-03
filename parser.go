@@ -32,6 +32,9 @@ func Read(s io.RuneScanner) Obj {
 	if o := ReadNum(s); o != nil {
 		return o
 	}
+	if o := ReadQuote(s); o != nil {
+		return o
+	}
 	// this should be at the bottom since it's so permissive
 	if o := ReadSym(s); o != nil {
 		return o
@@ -43,6 +46,15 @@ func ReadSpace(s io.RuneScanner) {
 	for unicode.IsSpace(peekRune(s)) {
 		readRune(s)
 	}
+}
+
+func ReadQuote(s io.RuneScanner) Obj {
+	r := peekRune(s)
+	if r != '\'' {
+		return nil
+	}
+	readRune(s)
+	return Cons(Intern("quote"), Cons(Read(s), Nil))
 }
 
 const symbolChars = "!#$%&*+,-./@:;<=>?^_"
