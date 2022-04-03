@@ -119,8 +119,7 @@ func DefinePrim(o Obj, e *Env) Obj {
 	}
 
 	expr := args[1]
-	e.Bind(name, Eval(expr, e))
-	return Nil
+	return e.Bind(name, Eval(expr, e))
 }
 
 func SetPrim(o Obj, e *Env) Obj {
@@ -135,8 +134,37 @@ func SetPrim(o Obj, e *Env) Obj {
 	}
 
 	expr := args[1]
-	e.Set(name, Eval(expr, e))
-	return Nil
+	return e.Set(name, Eval(expr, e))
+}
+
+func SetCarPrim(o Obj, e *Env) Obj {
+	args := listToSlice(o)
+	if len(args) != 2 {
+		panic("set takes 2 arguments")
+	}
+
+	name, ok := args[0].(*Symbol)
+	if !ok {
+		panic("the first argument to set is a symbol")
+	}
+
+	expr := args[1]
+	return e.SetCar(name, Eval(expr, e))
+}
+
+func SetCdrPrim(o Obj, e *Env) Obj {
+	args := listToSlice(o)
+	if len(args) != 2 {
+		panic("set takes 2 arguments")
+	}
+
+	name, ok := args[0].(*Symbol)
+	if !ok {
+		panic("the first argument to set is a symbol")
+	}
+
+	expr := args[1]
+	return e.SetCdr(name, Eval(expr, e))
 }
 
 func IfPrim(o Obj, e *Env) Obj {
@@ -266,7 +294,24 @@ func DivPrim(o Obj, e *Env) Obj {
 	return MakeNum(acc)
 }
 
-// TODO modulo operator
+func ModuloPrim(o Obj, e *Env) Obj {
+	acc := int64(0)
+	args := listToSlice(Evlis(o, e))
+	if len(args) != 0 {
+		panic("modulo takes 2 args")
+	}
+
+	v1, ok := args[0].(*Num)
+	if !ok {
+		panic("modulo only takes number arguments")
+	}
+	v2, ok := args[0].(*Num)
+	if !ok {
+		panic("modulo only takes number arguments")
+	}
+
+	return MakeNum(v1.n % v2.n)
+}
 
 func ExitPrim(o Obj, e *Env) Obj {
 	args := listToSlice(Evlis(o, e))

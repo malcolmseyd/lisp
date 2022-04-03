@@ -133,14 +133,45 @@ func MakeEnv(parent *Env) *Env {
 	}
 }
 
-func (e *Env) Bind(sym *Symbol, o Obj) {
+func (e *Env) Bind(sym *Symbol, o Obj) Obj {
 	e.bindings[*sym] = o
+	return o
 }
 
 func (e *Env) Set(sym *Symbol, o Obj) Obj {
 	if old, ok := e.bindings[*sym]; ok {
 		e.bindings[*sym] = o
 		return old
+	}
+	if e.parent != nil {
+		return e.parent.Set(sym, o)
+	}
+	panic(fmt.Sprintf("tried to set unbound variable %v", sym))
+}
+
+func (e *Env) SetCar(sym *Symbol, o Obj) Obj {
+	if curr, ok := e.bindings[*sym]; ok {
+		pair, ok := curr.(*Pair)
+		if !ok {
+			panic("called set-car! on non-pair element")
+		}
+		pair.Car = o
+		return pair
+	}
+	if e.parent != nil {
+		return e.parent.Set(sym, o)
+	}
+	panic(fmt.Sprintf("tried to set unbound variable %v", sym))
+}
+
+func (e *Env) SetCdr(sym *Symbol, o Obj) Obj {
+	if curr, ok := e.bindings[*sym]; ok {
+		pair, ok := curr.(*Pair)
+		if !ok {
+			panic("called set-car! on non-pair element")
+		}
+		pair.Cdr = o
+		return pair
 	}
 	if e.parent != nil {
 		return e.parent.Set(sym, o)
