@@ -366,11 +366,27 @@ func Quasiquote(o Obj, e *Env) Obj {
 	if len(elems) == 2 && UnquoteSym.Equal(elems[0]) {
 		return Eval(elems[1], e)
 	}
-	for i := range elems {
-		elems[i] = Quasiquote(elems[i], e)
-		// TODO unquote-splicing, i'll have to change to append
+	out := make([]Obj, 0, len(elems))
+	for _, elem := range elems {
+		if isUnquoteSplicing(elem) {
+			splicing := listToSlice(elem)
+			if len(splicing) != 2 {
+				panic("unquote-splicing takes 2 args")
+			}
+			out = append(out, listToSlice(Eval(splicing[1], e))...)
+		} else {
+			out = append(out, Quasiquote(elem, e))
+		}
 	}
-	return sliceToList(elems)
+	return sliceToList(out)
+}
+
+func isUnquoteSplicing(o Obj) bool {
+	pair, ok := o.(*Pair)
+	if !ok {
+		return false
+	}
+	return UnquoteSplicingSym.Equal(Car(pair))
 }
 
 // TODO gensym

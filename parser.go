@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
+	"fmt"
 	"io"
 	"strings"
 	"unicode"
@@ -11,7 +13,7 @@ import (
 The parser will use an LL recursive descent parsing strategy
 */
 
-func readRune(s io.RuneScanner) rune {
+func readRune(s *bufio.Reader) rune {
 	r, _, e := s.ReadRune()
 	if e != nil {
 		panic(e.Error())
@@ -19,7 +21,7 @@ func readRune(s io.RuneScanner) rune {
 	return r
 }
 
-func peekRune(s io.RuneScanner) rune {
+func peekRune(s *bufio.Reader) rune {
 	r, _, e := s.ReadRune()
 	if e != nil {
 		panic(e.Error())
@@ -28,19 +30,35 @@ func peekRune(s io.RuneScanner) rune {
 	return r
 }
 
-func Read(s io.RuneScanner) Obj {
+func peekN(s *bufio.Reader, n int) []byte {
+	b, err := s.Peek(n)
+	if err != nil {
+		panic(fmt.Sprintf("error peeking %v bytes: %v", n, err))
+	}
+	return b
+}
+
+func consumeN(s *bufio.Reader, n int) {
+	_, err := io.CopyN(io.Discard, s, int64(n))
+	if err != nil {
+		panic(fmt.Sprintf("error peeking %v bytes: %v", n, err))
+	}
+}
+
+func Read(s *bufio.Reader) Obj {
 	// things to ignore
 	ReadSpace(s)
 	for ReadComment(s) {
 		ReadSpace(s)
 	}
 
-	readers := []func(io.RuneScanner) Obj{
+	readers := []func(*bufio.Reader) Obj{
 		ReadList,
 		ReadCloseParen,
 		ReadNum,
 		ReadQuote,
 		ReadQuasiquote,
+		ReadUnquoteSplicing, // must be above ReadUnquote
 		ReadUnquote,
 		ReadSym, // this should be at the bottom since it's so permissive
 	}
@@ -53,13 +71,13 @@ func Read(s io.RuneScanner) Obj {
 	panic("bug: unknown syntax encountered while reading")
 }
 
-func ReadSpace(s io.RuneScanner) {
+func ReadSpace(s *bufio.Reader) {
 	for unicode.IsSpace(peekRune(s)) {
 		readRune(s)
 	}
 }
 
-func ReadComment(s io.RuneScanner) bool {
+func ReadComment(s *bufio.Reader) bool {
 	if peekRune(s) == ';' {
 		for readRune(s) != '\n' {
 			// consume until newline
@@ -69,7 +87,7 @@ func ReadComment(s io.RuneScanner) bool {
 	return false
 }
 
-func ReadQuote(s io.RuneScanner) Obj {
+func ReadQuote(s *bufio.Reader) Obj {
 	r := peekRune(s)
 	if r != '\'' {
 		return nil
@@ -78,7 +96,7 @@ func ReadQuote(s io.RuneScanner) Obj {
 	return Cons(QuoteSym, Cons(Read(s), Nil))
 }
 
-func ReadQuasiquote(s io.RuneScanner) Obj {
+func ReadQuasiquote(s *bufio.Reader) Obj {
 	r := peekRune(s)
 	if r != '`' {
 		return nil
@@ -87,7 +105,16 @@ func ReadQuasiquote(s io.RuneScanner) Obj {
 	return Cons(QuasiquoteSym, Cons(Read(s), Nil))
 }
 
-func ReadUnquote(s io.RuneScanner) Obj {
+func ReadUnquoteSplicing(s *bufio.Reader) Obj {
+	b := peekN(s, 2)
+	if string(b) != ",@" {
+		return nil
+	}
+	consumeN(s, 2)
+	return Cons(UnquoteSplicingSym, Cons(Read(s), Nil))
+}
+
+func ReadUnquote(s *bufio.Reader) Obj {
 	r := peekRune(s)
 	if r != ',' {
 		return nil
@@ -102,7 +129,7 @@ func isSymRune(r rune) bool {
 	return unicode.IsLetter(r) || unicode.IsNumber(r) || strings.ContainsRune(symbolChars, r)
 }
 
-func ReadSym(s io.RuneScanner) Obj {
+func ReadSym(s *bufio.Reader) Obj {
 	b := strings.Builder{}
 	for r := peekRune(s); isSymRune(r); r = peekRune(s) {
 		readRune(s)
@@ -118,7 +145,7 @@ func isNumRune(r rune) bool {
 	return r >= '0' && r <= '9'
 }
 
-func ReadNum(s io.RuneScanner) Obj {
+func ReadNum(s *bufio.Reader) Obj {
 	r := peekRune(s)
 	b := bytes.Buffer{}
 	for isNumRune(r) {
@@ -132,7 +159,7 @@ func ReadNum(s io.RuneScanner) Obj {
 	return ParseNum(b.Bytes())
 }
 
-func ReadList(s io.RuneScanner) Obj {
+func ReadList(s *bufio.Reader) Obj {
 	open := peekRune(s)
 	if open != '(' {
 		return nil
@@ -173,7 +200,7 @@ Outer:
 	return start
 }
 
-func ReadCloseParen(s io.RuneScanner) Obj {
+func ReadCloseParen(s *bufio.Reader) Obj {
 	if peekRune(s) == ')' {
 		readRune(s)
 		return &CloseParen{}

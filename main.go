@@ -5,7 +5,6 @@ import (
 	"bytes"
 	_ "embed"
 	"fmt"
-	"io"
 	"os"
 )
 
@@ -41,7 +40,7 @@ func loadPrelude(e *Env) {
 	}
 }
 
-func repl(r io.RuneScanner, e *Env) {
+func repl(r *bufio.Reader, e *Env) {
 	defer func() {
 		if r := recover(); r != nil {
 			if r == "EOF" {

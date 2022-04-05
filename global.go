@@ -4,13 +4,14 @@ package main
 var symbols = map[string]*string{}
 
 var (
-	Nil           = Intern("nil")
-	True          = Intern("#t")
-	Dot           = Intern(".")
-	QuoteSym      = Intern("quote")
-	UnquoteSym    = Intern("unquote")
-	QuasiquoteSym = Intern("quasiquote")
-	Else          = Intern("else")
+	Nil                = Intern("nil")
+	True               = Intern("#t")
+	Dot                = Intern(".")
+	QuoteSym           = Intern("quote")
+	QuasiquoteSym      = Intern("quasiquote")
+	UnquoteSym         = Intern("unquote")
+	UnquoteSplicingSym = Intern("unquote-splicing")
+	Else               = Intern("else")
 )
 
 func BindGlobals(e *Env) {
