@@ -3,9 +3,10 @@ package main
 var symbols = map[string]*string{}
 
 var (
-	Nil  = Intern("nil")
-	True = Intern("#t")
-	Dot  = Intern(".")
+	Nil      = Intern("nil")
+	True     = Intern("#t")
+	Dot      = Intern(".")
+	QuoteSym = Intern("quote")
 )
 
 func BindGlobals(e *Env) {
@@ -15,6 +16,7 @@ func BindGlobals(e *Env) {
 		"car":      CarPrim,
 		"cdr":      CdrPrim,
 		"define":   DefinePrim,
+		"defmacro": DefMacroPrim,
 		"set!":     SetPrim,
 		"set-car!": SetCarPrim,
 		"set-cdr!": SetCdrPrim,
@@ -31,6 +33,7 @@ func BindGlobals(e *Env) {
 		"/":        DivPrim,
 		"modulo":   ModuloPrim,
 		"exit":     ExitPrim,
+		"print":    PrintPrim,
 	}
 
 	for name, f := range prims {

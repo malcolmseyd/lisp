@@ -29,6 +29,9 @@ func peekRune(s io.RuneScanner) rune {
 
 func Read(s io.RuneScanner) Obj {
 	ReadSpace(s)
+	for ReadComment(s) {
+		ReadSpace(s)
+	}
 	if o := ReadList(s); o != nil {
 		return o
 	}
@@ -54,6 +57,16 @@ func ReadSpace(s io.RuneScanner) {
 	}
 }
 
+func ReadComment(s io.RuneScanner) bool {
+	if peekRune(s) == ';' {
+		for readRune(s) != '\n' {
+			// consume until newline
+		}
+		return true
+	}
+	return false
+}
+
 func ReadQuote(s io.RuneScanner) Obj {
 	r := peekRune(s)
 	if r != '\'' {
@@ -63,7 +76,7 @@ func ReadQuote(s io.RuneScanner) Obj {
 	return Cons(Intern("quote"), Cons(Read(s), Nil))
 }
 
-const symbolChars = "!#$%&*+,-./@:;<=>?^_"
+const symbolChars = "!#$%&*+,-./@:<=>?^_"
 
 func isSymRune(r rune) bool {
 	return unicode.IsLetter(r) || unicode.IsNumber(r) || strings.ContainsRune(symbolChars, r)

@@ -23,6 +23,10 @@ func (p Procedure) String() string {
 	return fmt.Sprintf("#<procedure: args=%v body=%v variadic=%v>", p.args, p.body, p.variadic)
 }
 
+func (p Macro) String() string {
+	return fmt.Sprintf("#<macro: args=%v body=%v variadic=%v>", p.args, p.body, p.variadic)
+}
+
 func (p *Pair) String() string {
 	b := strings.Builder{}
 	b.WriteByte('(')

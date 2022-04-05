@@ -4,7 +4,7 @@ import "fmt"
 
 func Eval(o Obj, e *Env) Obj {
 	switch o := o.(type) {
-	case *Primitive, *Procedure, *Num:
+	case *Primitive, *Procedure, *Macro, *Num:
 		return o
 	case *Symbol:
 		return e.Resolve(o)
@@ -31,6 +31,8 @@ func Apply(proc Obj, args Obj, e *Env) Obj {
 		return proc(args, e)
 	case *Procedure:
 		return ApplyProcedure(proc, Evlis(args, e), e)
+	case *Macro:
+		return Eval(ApplyMacro(proc, args, e), e)
 	default:
 		panic(fmt.Sprintf("unknown procedure type %T", proc))
 	}
@@ -54,6 +56,34 @@ func ApplyProcedure(proc *Procedure, argsList Obj, e *Env) Obj {
 	} else {
 		if len(args) != len(argsSyms) {
 			panic(fmt.Sprintf("this procedure takes %v arguments, but was given %v", len(argsSyms), len(args)))
+		}
+	}
+
+	last := Obj(nil)
+	for _, expr := range listToSlice(proc.body) {
+		last = Eval(expr, bodyScope)
+	}
+	return last
+}
+
+func ApplyMacro(proc *Macro, argsList Obj, e *Env) Obj {
+	args := listToSlice(argsList)
+	argsSyms := proc.args
+	if len(args) < len(argsSyms) {
+		panic(fmt.Sprintf("this macro takes %v arguments, but was given %v", len(argsSyms), len(args)))
+	}
+
+	bodyScope := MakeEnv(proc.scope)
+	for i, argSym := range argsSyms {
+		bodyScope.Bind(&argSym, args[i])
+	}
+
+	if proc.variadic != nil {
+		rest := args[len(argsSyms):]
+		bodyScope.Bind(proc.variadic, Cons(QuoteSym, Cons(sliceToList(rest), Nil)))
+	} else {
+		if len(args) != len(argsSyms) {
+			panic(fmt.Sprintf("this macro takes %v arguments, but was given %v", len(argsSyms), len(args)))
 		}
 	}
 

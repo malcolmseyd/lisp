@@ -33,6 +33,43 @@ func LambdaPrim(o Obj, e *Env) Obj {
 	return MakeProcedure(argsSyms, body, e)
 }
 
+func DefMacroPrim(o Obj, e *Env) Obj {
+	formArgs := listToSlice(o)
+	if len(formArgs) < 3 {
+		panic("defmacro takes at least 3 arguments")
+	}
+
+	name, ok := formArgs[0].(*Symbol)
+	if !ok {
+		panic("name must be a symbol")
+	}
+
+	args, variadic := improperListToSlice(formArgs[1])
+
+	variadicSym, ok := variadic.(*Symbol)
+	if variadic != nil && !ok {
+		panic("arguments must be symbols")
+	}
+
+	argsSyms := []Symbol{}
+	for _, arg := range args {
+		sym, ok := arg.(*Symbol)
+		if !ok {
+			panic("arguments must be symbols")
+		}
+		argsSyms = append(argsSyms, *sym)
+	}
+
+	body := sliceToList(formArgs[2:])
+
+	proc := Obj(nil)
+	if variadicSym != nil {
+		proc = MakeVariadicMacro(argsSyms, *variadicSym, body, e)
+	}
+	proc = MakeMacro(argsSyms, body, e)
+	return e.Bind(name, proc)
+}
+
 func EqPrim(o Obj, e *Env) Obj {
 	args := listToSlice(Evlis(o, e))
 
@@ -315,7 +352,7 @@ func ModuloPrim(o Obj, e *Env) Obj {
 func ExitPrim(o Obj, e *Env) Obj {
 	args := listToSlice(Evlis(o, e))
 	if len(args) > 1 {
-		panic("exit takes 1 or 0 argument")
+		panic("exit takes 1 or 0 arguments")
 	}
 	if len(args) == 0 {
 		os.Exit(0)
@@ -325,5 +362,14 @@ func ExitPrim(o Obj, e *Env) Obj {
 		panic("exit take a number for an argument")
 	}
 	os.Exit(int(n.n))
+	return Nil
+}
+
+func PrintPrim(o Obj, e *Env) Obj {
+	args := listToSlice(Evlis(o, e))
+	if len(args) != 1 {
+		panic("print takes 1 argument")
+	}
+	Print(args[0])
 	return Nil
 }

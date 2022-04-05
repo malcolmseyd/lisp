@@ -1,3 +1,8 @@
+(define list (lambda (. rest) rest))
+
+(defmacro not (a)
+  (if a nil #t))
+
 (define map
   (lambda (f ls)
     (if ls

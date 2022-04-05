@@ -26,6 +26,7 @@ type Obj interface {
 
 var _ Obj = Primitive(nil)
 var _ Obj = &Procedure{}
+var _ Obj = &Macro{}
 var _ Obj = &Symbol{}
 var _ Obj = &CloseParen{}
 var _ Obj = &Pair{}
@@ -107,6 +108,25 @@ func MakeProcedure(args []Symbol, body Obj, scope *Env) *Procedure {
 
 func MakeVariadicProcedure(args []Symbol, variadic Symbol, body Obj, scope *Env) *Procedure {
 	return &Procedure{args: args, body: body, scope: scope, variadic: &variadic}
+}
+
+type Macro struct {
+	args     []Symbol
+	body     Obj
+	scope    *Env
+	variadic *Symbol // nil if not variadic
+}
+
+func (Macro) Type() ObjType {
+	return TypeMacro
+}
+
+func MakeMacro(args []Symbol, body Obj, scope *Env) *Macro {
+	return &Macro{args: args, body: body, scope: scope}
+}
+
+func MakeVariadicMacro(args []Symbol, variadic Symbol, body Obj, scope *Env) *Macro {
+	return &Macro{args: args, body: body, scope: scope, variadic: &variadic}
 }
 
 type Num struct {
