@@ -345,6 +345,38 @@ func QuotePrim(o Obj, _ *Env) Obj {
 	return args[0]
 }
 
+func QuasiquotePrim(o Obj, e *Env) Obj {
+	args := listToSlice(o)
+	if len(args) != 1 {
+		panic("quasiquote takes 1 argument")
+	}
+	return Quasiquote(args[0], e)
+}
+
+func Quasiquote(o Obj, e *Env) Obj {
+	pair, ok := o.(*Pair)
+	if !ok {
+		if UnquoteSym.Equal(o) {
+			// since we can't catch it earlier
+			panic("unquote takes 2 args")
+		}
+		return o
+	}
+	elems := listToSlice(pair)
+	if len(elems) == 2 && UnquoteSym.Equal(elems[0]) {
+		return Eval(elems[1], e)
+	}
+	for i := range elems {
+		elems[i] = Quasiquote(elems[i], e)
+		// TODO unquote-splicing, i'll have to change to append
+	}
+	return sliceToList(elems)
+}
+
+// TODO gensym
+// make a constructor in types.go
+// should be un-interned, only used in macros
+
 func EvalPrim(o Obj, e *Env) Obj {
 	args := listToSlice(Evlis(o, e))
 	if len(args) != 1 {

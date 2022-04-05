@@ -45,6 +45,12 @@ func Read(s io.RuneScanner) Obj {
 	if o := ReadQuote(s); o != nil {
 		return o
 	}
+	if o := ReadQuasiquote(s); o != nil {
+		return o
+	}
+	if o := ReadUnquote(s); o != nil {
+		return o
+	}
 	// this should be at the bottom since it's so permissive
 	if o := ReadSym(s); o != nil {
 		return o
@@ -74,10 +80,28 @@ func ReadQuote(s io.RuneScanner) Obj {
 		return nil
 	}
 	readRune(s)
-	return Cons(Intern("quote"), Cons(Read(s), Nil))
+	return Cons(QuoteSym, Cons(Read(s), Nil))
 }
 
-const symbolChars = "!#$%&*+,-./@:<=>?^_"
+func ReadQuasiquote(s io.RuneScanner) Obj {
+	r := peekRune(s)
+	if r != '`' {
+		return nil
+	}
+	readRune(s)
+	return Cons(QuasiquoteSym, Cons(Read(s), Nil))
+}
+
+func ReadUnquote(s io.RuneScanner) Obj {
+	r := peekRune(s)
+	if r != ',' {
+		return nil
+	}
+	readRune(s)
+	return Cons(UnquoteSym, Cons(Read(s), Nil))
+}
+
+const symbolChars = "!#$%&*+-./@:<=>?^_"
 
 func isSymRune(r rune) bool {
 	return unicode.IsLetter(r) || unicode.IsNumber(r) || strings.ContainsRune(symbolChars, r)

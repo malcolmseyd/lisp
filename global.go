@@ -1,13 +1,16 @@
 package main
 
+// Interned symbols are NOT garbage collected
 var symbols = map[string]*string{}
 
 var (
-	Nil      = Intern("nil")
-	True     = Intern("#t")
-	Dot      = Intern(".")
-	QuoteSym = Intern("quote")
-	Else     = Intern("else")
+	Nil           = Intern("nil")
+	True          = Intern("#t")
+	Dot           = Intern(".")
+	QuoteSym      = Intern("quote")
+	UnquoteSym    = Intern("unquote")
+	QuasiquoteSym = Intern("quasiquote")
+	Else          = Intern("else")
 )
 
 func BindGlobals(e *Env) {
@@ -34,6 +37,7 @@ func BindGlobals(e *Env) {
 		"=":           EqPrim,
 		"<":           LessPrim,
 		"quote":       QuotePrim,
+		"quasiquote":  QuasiquotePrim,
 		"eval":        EvalPrim,
 		"apply":       ApplyPrim,
 		"+":           AddPrim,
