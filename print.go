@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"strconv"
 	"strings"
 )
 
@@ -11,8 +10,8 @@ func (s *Symbol) String() string {
 	return *s.interned
 }
 
-func (n *Num) String() string {
-	return strconv.FormatInt(int64(n.n), 10)
+func (n *Number) String() string {
+	return n.n.String()
 }
 
 func (Primitive) String() string {

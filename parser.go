@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"io"
 	"strings"
 	"unicode"
@@ -98,26 +99,18 @@ func isNumRune(r rune) bool {
 	return r >= '0' && r <= '9'
 }
 
-func parseDigit(r rune) int64 {
-	return int64(r - '0')
-}
-
-func ReadNum(s io.RuneScanner) *Num {
+func ReadNum(s io.RuneScanner) *Number {
 	r := peekRune(s)
-	result := int64(0)
-	if isNumRune(r) {
-		result = result*10 + parseDigit(r)
+	b := bytes.Buffer{}
+	for isNumRune(r) {
+		b.WriteRune(r)
 		readRune(s)
 		r = peekRune(s)
-	} else {
+	}
+	if b.Len() == 0 {
 		return nil
 	}
-	for isNumRune(r) {
-		result = result*10 + parseDigit(r)
-		readRune(s)
-		r = peekRune(s)
-	}
-	return MakeNum(result)
+	return ParseNum(b.Bytes())
 }
 
 func ReadList(s io.RuneScanner) Obj {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/big"
 )
 
 type ObjType uint8
@@ -30,7 +31,7 @@ var _ Obj = &Macro{}
 var _ Obj = &Symbol{}
 var _ Obj = &CloseParen{}
 var _ Obj = &Pair{}
-var _ Obj = &Num{}
+var _ Obj = &Number{}
 
 // Symbol is an interned string
 type Symbol struct {
@@ -129,16 +130,25 @@ func MakeVariadicMacro(args []Symbol, variadic Symbol, body Obj, scope *Env) *Ma
 	return &Macro{args: args, body: body, scope: scope, variadic: &variadic}
 }
 
-type Num struct {
-	n int64
+type Number struct {
+	n *big.Int
 }
 
-func (Num) Type() ObjType {
+func (Number) Type() ObjType {
 	return TypeNumber
 }
 
-func MakeNum(n int64) *Num {
-	return &Num{n: n}
+func ParseNum(text []byte) *Number {
+	n := big.NewInt(0)
+	n.UnmarshalText(text)
+	return &Number{n: n}
+}
+
+func MakeNum(n *big.Int) *Number {
+	if n == nil {
+		return &Number{n: big.NewInt(0)}
+	}
+	return &Number{n: n}
 }
 
 type Env struct {

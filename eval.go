@@ -4,7 +4,7 @@ import "fmt"
 
 func Eval(o Obj, e *Env) Obj {
 	switch o := o.(type) {
-	case *Primitive, *Procedure, *Macro, *Num:
+	case *Primitive, *Procedure, *Macro, *Number:
 		return o
 	case *Symbol:
 		return e.Resolve(o)

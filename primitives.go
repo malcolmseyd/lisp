@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math/big"
 	"os"
 )
 
@@ -159,7 +160,7 @@ func IsNumberPrim(o Obj, e *Env) Obj {
 		panic("number? takes 1 argument")
 	}
 	switch args[0].(type) {
-	case *Num:
+	case *Number:
 		return True
 	default:
 		return Nil
@@ -179,8 +180,8 @@ func EqPrim(o Obj, e *Env) Obj {
 	switch v1 := v1.(type) {
 	case *Symbol:
 		return boolToLisp(v1.Equal(v2))
-	case *Num:
-		return boolToLisp(*v1 == *v2.(*Num))
+	case *Number:
+		return boolToLisp(v1.n.Cmp(v2.(*Number).n) == 0)
 	default:
 		// reference equality for misc
 		return boolToLisp(v1 == v2)
@@ -190,17 +191,17 @@ func EqPrim(o Obj, e *Env) Obj {
 func LessPrim(o Obj, e *Env) Obj {
 	args := listToSlice(Evlis(o, e))
 
-	v1, ok := args[0].(*Num)
+	v1, ok := args[0].(*Number)
 	if !ok {
 		panic("args should be numbers")
 	}
 
-	v2, ok := args[1].(*Num)
+	v2, ok := args[1].(*Number)
 	if !ok {
 		panic("args should be numbers")
 	}
 
-	return boolToLisp(v1.n < v2.n)
+	return boolToLisp(v1.n.Cmp(v2.n) == -1)
 }
 
 func ConsPrim(o Obj, e *Env) Obj {
@@ -368,30 +369,30 @@ func ApplyPrim(o Obj, e *Env) Obj {
 }
 
 func AddPrim(o Obj, e *Env) Obj {
-	acc := int64(0)
+	acc := big.NewInt(0)
 	args := listToSlice(Evlis(o, e))
 	if len(args) == 0 {
 		return MakeNum(acc)
 	}
 	for _, n := range args {
-		n, ok := n.(*Num)
+		n, ok := n.(*Number)
 		if !ok {
 			panic("+ only takes number arguments")
 		}
 
-		acc += n.n
+		acc.Add(acc, n.n)
 	}
 	return MakeNum(acc)
 }
 
 func SubPrim(o Obj, e *Env) Obj {
-	acc := int64(0)
+	acc := big.NewInt(0)
 	args := listToSlice(Evlis(o, e))
 	if len(args) == 0 {
 		return MakeNum(acc)
 	}
 	for i, n := range args {
-		n, ok := n.(*Num)
+		n, ok := n.(*Number)
 		if !ok {
 			panic("- only takes number arguments")
 		}
@@ -400,41 +401,41 @@ func SubPrim(o Obj, e *Env) Obj {
 		if i == 0 {
 			acc = n.n
 		} else {
-			acc -= n.n
+			acc.Sub(acc, n.n)
 		}
 	}
 	// special case: unary minus is negation
 	if len(args) == 1 {
-		return MakeNum(-acc)
+		return MakeNum(acc.Neg(acc))
 	}
 	return MakeNum(acc)
 }
 
 func MulPrim(o Obj, e *Env) Obj {
-	acc := int64(1)
+	acc := big.NewInt(1)
 	args := listToSlice(Evlis(o, e))
 	if len(args) == 0 {
 		return MakeNum(acc)
 	}
 	for _, n := range args {
-		n, ok := n.(*Num)
+		n, ok := n.(*Number)
 		if !ok {
-			panic("/ only takes number arguments")
+			panic("* only takes number arguments")
 		}
 
-		acc *= n.n
+		acc.Mul(acc, n.n)
 	}
 	return MakeNum(acc)
 }
 
 func DivPrim(o Obj, e *Env) Obj {
-	acc := int64(1)
+	acc := big.NewInt(1)
 	args := listToSlice(Evlis(o, e))
 	if len(args) == 0 {
 		return MakeNum(acc)
 	}
 	for i, n := range args {
-		n, ok := n.(*Num)
+		n, ok := n.(*Number)
 		if !ok {
 			panic("/ only takes number arguments")
 		}
@@ -443,7 +444,7 @@ func DivPrim(o Obj, e *Env) Obj {
 		if i == 0 {
 			acc = n.n
 		} else {
-			acc /= n.n
+			acc.Div(acc, n.n)
 		}
 	}
 	return MakeNum(acc)
@@ -455,16 +456,18 @@ func ModuloPrim(o Obj, e *Env) Obj {
 		panic("modulo takes 2 args")
 	}
 
-	v1, ok := args[0].(*Num)
+	v1, ok := args[0].(*Number)
 	if !ok {
 		panic("modulo only takes number arguments")
 	}
-	v2, ok := args[1].(*Num)
+	v2, ok := args[1].(*Number)
 	if !ok {
 		panic("modulo only takes number arguments")
 	}
 
-	return MakeNum(v1.n % v2.n)
+	// mod MUTATES, so make a new bigint
+	result := big.NewInt(0).Mod(v1.n, v2.n)
+	return MakeNum(result)
 }
 
 func ExitPrim(o Obj, e *Env) Obj {
@@ -475,11 +478,11 @@ func ExitPrim(o Obj, e *Env) Obj {
 	if len(args) == 0 {
 		os.Exit(0)
 	}
-	n, ok := args[0].(*Num)
+	n, ok := args[0].(*Number)
 	if !ok {
 		panic("exit take a number for an argument")
 	}
-	os.Exit(int(n.n))
+	os.Exit(int(n.n.Int64()))
 	return Nil
 }
 
