@@ -57,5 +57,9 @@ func ApplyProcedure(proc *Procedure, argsList Obj, e *Env) Obj {
 		}
 	}
 
-	return Eval(proc.body, bodyScope)
+	last := Obj(nil)
+	for _, expr := range listToSlice(proc.body) {
+		last = Eval(expr, bodyScope)
+	}
+	return last
 }

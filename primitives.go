@@ -6,8 +6,8 @@ import (
 
 func LambdaPrim(o Obj, e *Env) Obj {
 	formArgs := listToSlice(o)
-	if len(formArgs) != 2 {
-		panic("lambda takes 2 arguments")
+	if len(formArgs) < 2 {
+		panic("lambda takes at least 2 arguments")
 	}
 	args, variadic := improperListToSlice(formArgs[0])
 
@@ -25,7 +25,7 @@ func LambdaPrim(o Obj, e *Env) Obj {
 		argsSyms = append(argsSyms, *sym)
 	}
 
-	body := formArgs[1]
+	body := sliceToList(formArgs[1:])
 
 	if variadicSym != nil {
 		return MakeVariadicProcedure(argsSyms, *variadicSym, body, e)
