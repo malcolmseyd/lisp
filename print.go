@@ -7,7 +7,7 @@ import (
 )
 
 func (s *Symbol) String() string {
-	return *s.interned
+	return *s.s
 }
 
 func (n *Number) String() string {

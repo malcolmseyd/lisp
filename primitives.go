@@ -89,6 +89,13 @@ func MacroExpandPrim(o Obj, e *Env) Obj {
 	return ApplyMacro(macro, rest, e)
 }
 
+func GensymPrim(o Obj, e *Env) Obj {
+	if !Nil.Equal(o) {
+		panic("gensym takes no args")
+	}
+	return Gensym()
+}
+
 func IsSymbolPrim(o Obj, e *Env) Obj {
 	args := listToSlice(Evlis(o, e))
 	if len(args) != 1 {

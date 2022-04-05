@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math/big"
+	"strconv"
 )
 
 type ObjType uint8
@@ -33,9 +34,9 @@ var _ Obj = &CloseParen{}
 var _ Obj = &Pair{}
 var _ Obj = &Number{}
 
-// Symbol is an interned string
+// Symbol is an interned string (except with Gensym)
 type Symbol struct {
-	interned *string
+	s *string
 }
 
 func (s *Symbol) Type() ObjType {
@@ -48,7 +49,19 @@ func Intern(s string) *Symbol {
 		symbols[s] = &s
 		interned = &s
 	}
-	return &Symbol{interned: interned}
+	return &Symbol{s: interned}
+}
+
+// names can collide since it's not interned
+// the name is for debugging purposes only
+var gensymCounter uint64 = 0
+
+// generates an un-interned symbol
+// for use inside of macros only please and thank you
+func Gensym() *Symbol {
+	s := "__GEN-" + strconv.FormatUint(gensymCounter, 36)
+	gensymCounter++
+	return &Symbol{s: &s}
 }
 
 func (s *Symbol) Equal(o Obj) bool {

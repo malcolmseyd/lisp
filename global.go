@@ -22,6 +22,7 @@ func BindGlobals(e *Env) {
 		"cdr":         CdrPrim,
 		"define":      DefinePrim,
 		"defmacro":    DefMacroPrim,
+		"gensym":      GensymPrim,
 		"macroexpand": MacroExpandPrim,
 		"set!":        SetPrim,
 		"set-car!":    SetCarPrim,
