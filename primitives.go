@@ -66,11 +66,14 @@ func DefMacroPrim(o Obj, e *Env) Obj {
 	proc := Obj(nil)
 	if variadicSym != nil {
 		proc = MakeVariadicMacro(argsSyms, *variadicSym, body, e)
+	} else {
+		proc = MakeMacro(argsSyms, body, e)
 	}
-	proc = MakeMacro(argsSyms, body, e)
 	return e.Bind(name, proc)
 }
 
+// only goes one layer deep
+// if i want recursion i basically need another specialized Eval
 func MacroExpandPrim(o Obj, e *Env) Obj {
 	args := listToSlice(o)
 	if len(args) != 1 {

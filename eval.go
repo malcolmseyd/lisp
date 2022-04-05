@@ -80,7 +80,7 @@ func ApplyMacro(proc *Macro, argsList Obj, e *Env) Obj {
 
 	if proc.variadic != nil {
 		rest := args[len(argsSyms):]
-		bodyScope.Bind(proc.variadic, Cons(QuoteSym, Cons(sliceToList(rest), Nil)))
+		bodyScope.Bind(proc.variadic, sliceToList(rest))
 	} else {
 		if len(args) != len(argsSyms) {
 			panic(fmt.Sprintf("this macro takes %v arguments, but was given %v", len(argsSyms), len(args)))

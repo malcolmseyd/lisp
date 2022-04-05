@@ -3,23 +3,23 @@
 (defmacro not (a)
   (if a nil #t))
 
-;; (let ((a 1))
-;;   body)
-;;
-;; ((lambda (a)
-;;    body)
-;;  1)
-;; TODO write quasiquote like seriously this is gross
+(defmacro or (a . rest)
+  (if rest
+      (let ((a-sym (gensym)))
+        `(let ((,a-sym ,a)) ; only eval a once
+           (if ,a-sym
+               ,a-sym
+               (or ,(car rest) ,@(cdr rest)))))
+      a))
+
+;; (let ((a 1) (b 2))
+;;   (+ a b))
 (defmacro let (bindings body)
   (if bindings
-      (list ; application
-       (list ; lambda expression
-        'lambda ; form name
-        (list (car (car bindings))) ; parameter (a)
-        (eval ; body (recurse to look for more lambdas)
-         (list 'let (cdr bindings) 'body))) 
-       (car (cdr (car bindings)))) ; applied parameter (1)
-      body)) ; recursion bottom case
+      `((lambda (,(car (car bindings))) ; parameter (a)
+         (let ,(cdr bindings) ,body))
+       ,(car (cdr (car bindings)))) ; applied parameter (1)
+      body)) ; bottom out at the body when no more bindings
 
 (define map
   (lambda (f ls)

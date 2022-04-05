@@ -11,7 +11,7 @@ func boolToLisp(b bool) Obj {
 
 func sliceToList(slice []Obj) Obj {
 	if len(slice) == 0 {
-		return nil
+		return Nil
 	}
 	head := Cons(slice[0], Nil)
 	tail := head
