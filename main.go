@@ -51,5 +51,7 @@ func repl(r *bufio.Reader, e *Env) {
 	}()
 
 	fmt.Print("> ")
-	Print(Eval(Read(r), e))
+	result := Eval(Read(r), e)
+	fmt.Print("< ")
+	Print(result)
 }
