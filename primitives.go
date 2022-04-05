@@ -70,6 +70,84 @@ func DefMacroPrim(o Obj, e *Env) Obj {
 	return e.Bind(name, proc)
 }
 
+func IsSymbolPrim(o Obj, e *Env) Obj {
+	args := listToSlice(Evlis(o, e))
+	if len(args) != 1 {
+		panic("symbol? takes 1 argument")
+	}
+	switch args[0].(type) {
+	case *Symbol:
+		return True
+	default:
+		return Nil
+	}
+}
+
+func IsPairPrim(o Obj, e *Env) Obj {
+	args := listToSlice(Evlis(o, e))
+	if len(args) != 1 {
+		panic("pair? takes 1 argument")
+	}
+	switch args[0].(type) {
+	case *Pair:
+		return True
+	default:
+		return Nil
+	}
+}
+
+func IsPrimitivePrim(o Obj, e *Env) Obj {
+	args := listToSlice(Evlis(o, e))
+	if len(args) != 1 {
+		panic("primitive? takes 1 argument")
+	}
+	switch args[0].(type) {
+	case Primitive:
+		return True
+	default:
+		return Nil
+	}
+}
+
+func IsProcedurePrim(o Obj, e *Env) Obj {
+	args := listToSlice(Evlis(o, e))
+	if len(args) != 1 {
+		panic("procedure? takes 1 argument")
+	}
+	switch args[0].(type) {
+	case *Procedure:
+		return True
+	default:
+		return Nil
+	}
+}
+
+func IsMacroPrim(o Obj, e *Env) Obj {
+	args := listToSlice(Evlis(o, e))
+	if len(args) != 1 {
+		panic("macro? takes 1 argument")
+	}
+	switch args[0].(type) {
+	case *Macro:
+		return True
+	default:
+		return Nil
+	}
+}
+
+func IsNumberPrim(o Obj, e *Env) Obj {
+	args := listToSlice(Evlis(o, e))
+	if len(args) != 1 {
+		panic("number? takes 1 argument")
+	}
+	switch args[0].(type) {
+	case *Num:
+		return True
+	default:
+		return Nil
+	}
+}
+
 func EqPrim(o Obj, e *Env) Obj {
 	args := listToSlice(Evlis(o, e))
 
