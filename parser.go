@@ -29,31 +29,26 @@ func peekRune(s io.RuneScanner) rune {
 }
 
 func Read(s io.RuneScanner) Obj {
+	// things to ignore
 	ReadSpace(s)
 	for ReadComment(s) {
 		ReadSpace(s)
 	}
-	if o := ReadList(s); o != nil {
-		return o
+
+	readers := []func(io.RuneScanner) Obj{
+		ReadList,
+		ReadCloseParen,
+		ReadNum,
+		ReadQuote,
+		ReadQuasiquote,
+		ReadUnquote,
+		ReadSym, // this should be at the bottom since it's so permissive
 	}
-	if o := ReadCloseParen(s); o != nil {
-		return o
-	}
-	if o := ReadNum(s); o != nil {
-		return o
-	}
-	if o := ReadQuote(s); o != nil {
-		return o
-	}
-	if o := ReadQuasiquote(s); o != nil {
-		return o
-	}
-	if o := ReadUnquote(s); o != nil {
-		return o
-	}
-	// this should be at the bottom since it's so permissive
-	if o := ReadSym(s); o != nil {
-		return o
+
+	for _, reader := range readers {
+		if o := reader(s); o != nil {
+			return o
+		}
 	}
 	panic("bug: unknown syntax encountered while reading")
 }
@@ -107,7 +102,7 @@ func isSymRune(r rune) bool {
 	return unicode.IsLetter(r) || unicode.IsNumber(r) || strings.ContainsRune(symbolChars, r)
 }
 
-func ReadSym(s io.RuneScanner) *Symbol {
+func ReadSym(s io.RuneScanner) Obj {
 	b := strings.Builder{}
 	for r := peekRune(s); isSymRune(r); r = peekRune(s) {
 		readRune(s)
@@ -123,7 +118,7 @@ func isNumRune(r rune) bool {
 	return r >= '0' && r <= '9'
 }
 
-func ReadNum(s io.RuneScanner) *Number {
+func ReadNum(s io.RuneScanner) Obj {
 	r := peekRune(s)
 	b := bytes.Buffer{}
 	for isNumRune(r) {
@@ -178,7 +173,7 @@ Outer:
 	return start
 }
 
-func ReadCloseParen(s io.RuneScanner) *CloseParen {
+func ReadCloseParen(s io.RuneScanner) Obj {
 	if peekRune(s) == ')' {
 		readRune(s)
 		return &CloseParen{}
