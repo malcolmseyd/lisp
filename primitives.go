@@ -70,6 +70,24 @@ func DefMacroPrim(o Obj, e *Env) Obj {
 	return e.Bind(name, proc)
 }
 
+func MacroExpandPrim(o Obj, e *Env) Obj {
+	args := listToSlice(o)
+	if len(args) != 1 {
+		panic("macroexpand takes 1 argument")
+	}
+	expr := listToSlice(args[0])
+	if len(expr) < 1 {
+		panic("macroexpand must be used on a macro expression")
+	}
+	macro, ok := Eval(expr[0], e).(*Macro)
+	if !ok {
+		panic("macroexpand must be used on a macro expression")
+	}
+	rest := sliceToList(expr[1:])
+
+	return ApplyMacro(macro, rest, e)
+}
+
 func IsSymbolPrim(o Obj, e *Env) Obj {
 	args := listToSlice(Evlis(o, e))
 	if len(args) != 1 {
@@ -294,6 +312,28 @@ func IfPrim(o Obj, e *Env) Obj {
 		return Eval(expr1, e)
 	}
 	return Eval(expr2, e)
+}
+
+func CondPrim(o Obj, e *Env) Obj {
+	args := listToSlice(o)
+	if len(args) < 1 {
+		panic("cond takes at least 1 argument")
+	}
+	for _, cases := range args {
+		cases := listToSlice(cases)
+		if len(cases) != 2 {
+			panic("each cond case should have a predicate and a body")
+		}
+		pred := cases[0]
+		body := cases[1]
+		if Else.Equal(pred) {
+			return Eval(body, e)
+		}
+		if !Nil.Equal(Eval(pred, e)) {
+			return Eval(body, e)
+		}
+	}
+	return Nil
 }
 
 func QuotePrim(o Obj, _ *Env) Obj {
