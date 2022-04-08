@@ -314,16 +314,24 @@ func SetCdrPrim(o Obj, e *Env) Obj {
 
 func IfPrim(o Obj, e *Env) Obj {
 	args := listToSlice(o)
-	if len(args) != 3 {
-		panic("if takes 3 arguments")
+	if len(args) == 2 {
+		test := Eval(args[0], e)
+		expr1 := args[1]
+		if !Nil.Equal(test) {
+			return Eval(expr1, e)
+		}
+		return Nil
+	} else if len(args) == 3 {
+		test := Eval(args[0], e)
+		expr1 := args[1]
+		expr2 := args[2]
+		if !Nil.Equal(test) {
+			return Eval(expr1, e)
+		}
+		return Eval(expr2, e)
+	} else {
+		panic("if takes 2 or 3 arguments")
 	}
-	test := Eval(args[0], e)
-	expr1 := args[1]
-	expr2 := args[2]
-	if !Nil.Equal(test) {
-		return Eval(expr1, e)
-	}
-	return Eval(expr2, e)
 }
 
 func CondPrim(o Obj, e *Env) Obj {
