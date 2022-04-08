@@ -21,8 +21,8 @@
        ,(car (cdr (car bindings)))) ; applied parameter (1)
       body)) ; bottom out at the body when no more bindings
 
-(defmacro begin (. exprs)T
-  ((lambda () ,@exprs)))
+(defmacro begin (. exprs)
+  `((lambda () ,@exprs)))
 
 (define map
   (lambda (f ls)
