@@ -49,6 +49,7 @@ func BindGlobals(e *Env) {
 		"modulo":      ModuloPrim,
 		"exit":        ExitPrim,
 		"print":       PrintPrim,
+		"__print-env": PrintEnvPrim,
 	}
 
 	for name, f := range prims {

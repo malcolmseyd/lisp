@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"math/big"
 	"os"
 )
@@ -457,7 +458,7 @@ func SubPrim(o Obj, e *Env) Obj {
 
 		// first element is minuend, following are subtrahend (i googled this lol)
 		if i == 0 {
-			acc = n.n
+			acc.SetBytes(n.n.Bytes())
 		} else {
 			acc.Sub(acc, n.n)
 		}
@@ -500,7 +501,7 @@ func DivPrim(o Obj, e *Env) Obj {
 
 		// first element is divident, following are divisors
 		if i == 0 {
-			acc = n.n
+			acc.SetBytes(n.n.Bytes())
 		} else {
 			acc.Div(acc, n.n)
 		}
@@ -550,5 +551,10 @@ func PrintPrim(o Obj, e *Env) Obj {
 		panic("print takes 1 argument")
 	}
 	Print(args[0])
+	return Nil
+}
+
+func PrintEnvPrim(o Obj, e *Env) Obj {
+	log.Printf("%v\n", e.String())
 	return Nil
 }

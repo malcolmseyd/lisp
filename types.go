@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/big"
 	"strconv"
+	"strings"
 )
 
 type ObjType uint8
@@ -230,4 +231,22 @@ func (e *Env) Resolve(sym *Symbol) Obj {
 		return e.parent.Resolve(sym)
 	}
 	panic(fmt.Sprintf("tried to get unbound variable %v", sym))
+}
+
+func (e *Env) String() string {
+	s := strings.Builder{}
+	s.WriteString("env ")
+	s.WriteString(fmt.Sprintf("%p", e))
+	s.WriteString(" {\n")
+	for k, v := range e.bindings {
+		s.WriteString(k.String())
+		s.WriteString(": ")
+		s.WriteString(v.(fmt.Stringer).String())
+		s.WriteString(" {")
+		s.WriteString(fmt.Sprintf("%p", v))
+		s.WriteString("}")
+		s.WriteString(",\n")
+	}
+	s.WriteString("}\n")
+	return s.String()
 }
