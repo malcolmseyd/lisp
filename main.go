@@ -8,6 +8,8 @@ import (
 	"os"
 )
 
+var _, noREPL = os.LookupEnv("NO_REPL")
+
 // this function is currently for testing purposes
 // this will be the case until we get the parser going
 func main() {
@@ -50,8 +52,12 @@ func repl(r *bufio.Reader, e *Env) {
 		}
 	}()
 
-	fmt.Print("> ")
-	result := Eval(Read(r), e)
-	fmt.Print("< ")
-	Print(result)
+	if noREPL {
+		Print(Eval(Read(r), e))
+	} else {
+		fmt.Print("> ")
+		result := Eval(Read(r), e)
+		fmt.Print("< ")
+		Print(result)
+	}
 }
