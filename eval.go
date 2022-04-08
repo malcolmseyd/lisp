@@ -34,7 +34,7 @@ func Apply(proc Obj, args Obj, e *Env) Obj {
 	case *Macro:
 		return Eval(ApplyMacro(proc, args, e), e)
 	default:
-		panic(fmt.Sprintf("unknown procedure type %T", proc))
+		panic(fmt.Sprintf("unknown procedure type %T with contents %v args %v", proc, proc, args))
 	}
 }
 
