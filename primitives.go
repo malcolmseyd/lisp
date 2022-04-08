@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"math/big"
 	"os"
@@ -275,7 +276,7 @@ func SetPrim(o Obj, e *Env) Obj {
 
 	name, ok := args[0].(*Symbol)
 	if !ok {
-		panic("the first argument to set is a symbol")
+		panic(fmt.Sprintf("the first argument to set is a symbol, not %T (%v)", args[0], args[0].(fmt.Stringer).String()))
 	}
 
 	expr := args[1]
@@ -283,33 +284,37 @@ func SetPrim(o Obj, e *Env) Obj {
 }
 
 func SetCarPrim(o Obj, e *Env) Obj {
-	args := listToSlice(o)
+	args := listToSlice(Evlis(o, e))
 	if len(args) != 2 {
-		panic("set takes 2 arguments")
+		panic("set-car! takes 2 arguments")
 	}
 
-	name, ok := args[0].(*Symbol)
+	pair, ok := args[0].(*Pair)
 	if !ok {
-		panic("the first argument to set is a symbol")
+		panic(fmt.Sprintf("the first argument to set-car is a pair, not %T (%v)", args[0], args[0].(fmt.Stringer).String()))
 	}
 
-	expr := args[1]
-	return e.SetCar(name, Eval(expr, e))
+	newVal := args[1]
+	oldVal := pair.Car
+	pair.Car = newVal
+	return oldVal
 }
 
 func SetCdrPrim(o Obj, e *Env) Obj {
-	args := listToSlice(o)
+	args := listToSlice(Evlis(o, e))
 	if len(args) != 2 {
-		panic("set takes 2 arguments")
+		panic("set-cdr! takes 2 arguments")
 	}
 
-	name, ok := args[0].(*Symbol)
+	pair, ok := args[0].(*Pair)
 	if !ok {
-		panic("the first argument to set is a symbol")
+		panic(fmt.Sprintf("the first argument to set-cdr is a pair, not %T (%v)", args[0], args[0].(fmt.Stringer).String()))
 	}
 
-	expr := args[1]
-	return e.SetCdr(name, Eval(expr, e))
+	newVal := args[1]
+	oldVal := pair.Cdr
+	pair.Cdr = newVal
+	return oldVal
 }
 
 func IfPrim(o Obj, e *Env) Obj {
@@ -330,7 +335,7 @@ func IfPrim(o Obj, e *Env) Obj {
 		}
 		return Eval(expr2, e)
 	} else {
-		panic("if takes 2 or 3 arguments")
+		panic(fmt.Sprintf("if takes 2 or 3 arguments, given %v", o.(fmt.Stringer).String()))
 	}
 }
 
