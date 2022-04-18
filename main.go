@@ -53,7 +53,7 @@ func repl(r *bufio.Reader, e *Env) {
 	}()
 
 	if noREPL {
-		Print(Eval(Read(r), e))
+		Eval(Read(r), e)
 	} else {
 		fmt.Print("> ")
 		result := Eval(Read(r), e)

@@ -230,7 +230,6 @@
 ;;; Main
 ;;;
 
-(iota 8)
 (define board-size 8)
 (define board (make-board board-size))
 (solve board)
