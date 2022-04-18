@@ -157,9 +157,9 @@ Our `Apply` function looks something like this:
 func Apply(f Expr, args *List, env *Env) Expr {
     switch f := f.(type) {
     case *Procedure:
-        ApplyProcedure(f, args)
+        ApplyProcedure(f, args, env)
     case *Macro:
-        ApplyMacro(f, args)
+        ApplyMacro(f, args, env)
     case SpecialForm:
         f(args, env)
     }
@@ -242,7 +242,7 @@ them.
 Our `ApplyMacro` function looks something like this:
 
 ```go
-func ApplyMacro(macro *Macro, env *Env) {
+func ApplyMacro(macro *Macro, args *List, env *Env) {
     // create a new environment and bind the arguments to their values
     newEnv := makeEnv()
     newEnv.SetParent(proc.ParentEnv)
